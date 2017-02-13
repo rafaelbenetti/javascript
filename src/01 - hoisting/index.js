@@ -1,8 +1,11 @@
 
+// The variable hello is printed as undefined because the javascript interpreter creates a space on memory.
 console.log(hello);
 
 sayHello();
 saySomething();
+
+// I don't know what happened here.
 notAFunction();
 
 var hello = 'hello world';
