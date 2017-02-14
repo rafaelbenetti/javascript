@@ -15,6 +15,10 @@ A wrapper to help manage the code that is running.
 * There are logs of lexical environments. Which on is currently running is managed via execution contexts. It can contain things beyond what you've written in your code.
 * Every function creates a new execution context.
 
+# Outer Environment
+It's the scope of the father or the Global Execution Context.
+* To override a function or variable of your father, just write again on your Excution Context.
+
 # Name/Value pair
 A name which maps to a unique Value.
 * The name may  be defined more than once, but only can have one value in any given context.
@@ -48,5 +52,9 @@ Running a function.
 # Variable Environment
 Where the variables live.
 * And how they relate to each other in memory.
+
+# Scope 
+Where a variable iss available in your code.
+* And if it's truly the same variable, or a new copy.
 
 
