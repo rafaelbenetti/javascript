@@ -56,3 +56,7 @@ Where the variables live.
 # Scope 
 Where a variable iss available in your code.
 * And if it's truly the same variable, or a new copy.
+
+# Namespace
+A container for variables and functions.
+* Typically to keep variables and functions with the same separate.
