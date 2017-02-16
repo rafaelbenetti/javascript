@@ -56,5 +56,3 @@ Where the variables live.
 # Scope 
 Where a variable iss available in your code.
 * And if it's truly the same variable, or a new copy.
-
-
