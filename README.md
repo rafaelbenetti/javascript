@@ -60,3 +60,14 @@ Where a variable iss available in your code.
 # Namespace
 A container for variables and functions.
 * Typically to keep variables and functions with the same separate.
+
+# Function
+Functions are objects.
+
+# First Class Functions
+Everything you can do with other types you can do with functions.
+* Assign them to variables, pass them around, create them on the fly.
+
+# Expression
+A unit of code that results in a value.
+* It doesn't have to save to a variable.
