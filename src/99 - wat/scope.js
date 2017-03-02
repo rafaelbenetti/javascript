@@ -1,5 +1,4 @@
-// Study more to learn scope.
-
+// Simple example of using scope.
 var Carro = (function() {
 
     var engine = function() {
