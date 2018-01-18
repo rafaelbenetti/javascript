@@ -1,73 +1,60 @@
-# Javascript
-Project to learn advanced javascript.
-* Javascript is Synchronous and Single Threaded.
+# Review of the basics of Javascript
 
-# Conceptual Aside
-Syntax Parsers: A program that reads your code and determines what it does and if it's grammar is valid.
-* Your code isn't magic. Someone else wrote a program to translate it for the computer.
+* [Javascript definition](#javascript-definition)
+    * [Interpreted](#interpreted)
+    * [Non Typed](#non-typed)
+    * [Single Thread](#single-thread)
+    * [Syncronous](#syncronous)
+    * [Asyncronous](#asyncronous)
+* [Types](#types)
+    * [Number](#number)   
+    * [String](#string)   
+    * [Function](#function)   
+    * [Object](#Object)   
+* [Equality operators](#equality-operators)
+* [Hoisting](#hoisting)
+* [Asynchronous](#asynchounous)
+    * [Callback](#callback)
+    * [Promises](#promises)
+    * [Observable](#observable)
+* [Callback Queue](#callback-queue)
 
-# Lexical Environments
-Where something sits physically in the code you write.
-* 'Lexical' means 'having to do with words or grammar'. A lexical environment exists in programming languages in which WHERE you write something is important.
+## Javascript definition
+- Javascript is an interpreted, non typed, single thread and syncronous language |o|.
 
-# Execution Contexts
-A wrapper to help manage the code that is running.
-* There are logs of lexical environments. Which on is currently running is managed via execution contexts. It can contain things beyond what you've written in your code.
-* Every function creates a new execution context.
+## Interpreted
+- JavaScript is interpreted at runtime by the client browser.
 
-# Outer Environment
-It's the scope of the father or the Global Execution Context.
-* To override a function or variable of your father, just write again on your Excution Context.
+## Non typed
+- Javascript is a non typed language.
+- It means that you don't have types in Javascript, you can change during runtime.
 
-# Name/Value pair
-A name which maps to a unique Value.
-* The name may  be defined more than once, but only can have one value in any given context.
-* That value may be more name/value pairs.
+```js
+var name = 'Walter White';
 
-# Object
-A collection of name value pairs.
-* The simplest definition when talking about Javascript.
+name = true; // You can change the type.
+name = 20;   // You can change the type.
+```
 
-# Global
-When we create an empty file in javascript the engine creates a global scope or global execution code. In this scope we have access for two things the 'Global Object' and 'this'.
-* The simplest definition when talking about Global in Javascript 'Not inside a function'.
+## Single thread
+- Javascript is Single Thread.
+- It means that Javascript can execute only one thing at a time.
 
-# Hoisting
-Setup Memory Space for Variables and Functions.
-* You can think that you code is moved physically to the top of your file. But it's not like that.
-* It's just a memory space for your variables and functions.
+![Single Thread](src/assets/single-thread.png)
 
-# Single Threaded
-One command at a time.
-* Under the hood of the browser, maybe not.
+## Synchronous
+- Javascript is Synchronous***.
+- It means that Javascript can execute only one thing at a time too.
 
-# Synchronous
-One at a time.
-* And in order...
+![Synchronous](src/assets/synchronous.png)
 
-# Invocation
-Running a function.
-* In Javascript, by using parenthesis ().
+## Asynchronous
+- Javascript is NOT Asynchronous by default.
+- It means that Javascript can execute only one thing at a time.
+- You can simulate asynchronous using the broswer's API (setTimeOut, Ajax).
 
-# Variable Environment
-Where the variables live.
-* And how they relate to each other in memory.
+![Asynchronous](src/assets/asynchronous.png)
 
-# Scope 
-Where a variable iss available in your code.
-* And if it's truly the same variable, or a new copy.
+## Callback queue
 
-# Namespace
-A container for variables and functions.
-* Typically to keep variables and functions with the same separate.
-
-# Function
-Functions are objects.
-
-# First Class Functions
-Everything you can do with other types you can do with functions.
-* Assign them to variables, pass them around, create them on the fly.
-
-# Expression
-A unit of code that results in a value.
-* It doesn't have to save to a variable.
+![Callback queue](src/assets/callback-queue.png)
