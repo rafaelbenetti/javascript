@@ -1,11 +1,11 @@
 # Review of the basics of Javascript
 
-* [Javascript definition](#javascript-definition)
+* [Javascript definition](#Javascript-definition)
     * [Interpreted](#interpreted)
     * [Non Typed](#non-typed)
     * [Single Thread](#single-thread)
-    * [Syncronous](#syncronous)
-    * [Asyncronous](#asyncronous)
+    * [Synchronous](#synchronous)
+    * [Asynchronous](#asynchronous)
 * [Types](#types)
     * [Undefined](#undefined)
     * [Number](#number)   
@@ -14,7 +14,7 @@
     * [Object](#Object)   
 * [Equality operators](#equality-operators)
 * [Hoisting](#hoisting)
-* [Asynchronous](#asynchounous)
+* [Asynchronous](#callback)
     * [Callback](#callback)
     * [Promises](#promises)
     * [Observables](#observable)
@@ -24,7 +24,7 @@
 - Javascript is an interpreted, non typed, single thread and syncronous language |o|.
 
 ## Interpreted
-- JavaScript is interpreted at runtime by the client browser.
+- Javascript is interpreted at runtime by the client browser.
 
 ## Non typed
 - Javascript is a non typed language.
@@ -59,7 +59,7 @@ name = 20;   // You can change the type.
 ## Types
 - At the same way that Javascript is not typed, it can understand some types. :)
 - Javascript undestand at runtime the basic types.
-- Javasxcript evaluates expressions from left to right. Different sequences can produce different results:
+- Javascript evaluates expressions from left to right. Different sequences can produce different results:
 
 ```js
 var age = 20 + 2 + 'benetti';
@@ -106,7 +106,7 @@ console.log(bar.name); // Result bar
 ```
 
 ## Objects
-- A JavaScript object is a mapping between keys and values.
+- A Javascript object is a mapping between keys and values.
 - Keys are strings (or Symbols) and values can be anything.
 - This makes objects a natural fit for hashmaps.
 
@@ -120,7 +120,7 @@ person.name;
 person['name'];
 ```
 
-- In JavaScript objects are a reference type. Two distinct objects are never equal, even if they have the same properties. Only comparing the same object reference with itself yields true.
+- In Javascript objects are a reference type. Two distinct objects are never equal, even if they have the same properties. Only comparing the same object reference with itself yields true.
 
 ```js
 // Two variables, two distinct objects with the same properties
@@ -168,7 +168,7 @@ null == undefined  // true
 - The default value for variables is undefined.
 - Functions are stored in the memory with it's entire code.
 - Basically, Javascript only executes the first part of variables's declaration: var nameOfVariable =
-- After the = signal, it's an expression and javascript on only executes expression in runtime.
+- After the = signal, it's an expression and Javascript on only executes expression in runtime.
 ```js
 console.log(hello);
 
@@ -225,7 +225,7 @@ function executeInTheFuture() {
 setTimeout(executeInTheFuture(), 5000);
 ```
 ## Promises
-- It's a way to execute javascript asynchronous using the browser APIs.
+- It's a way to execute Javascript asynchronous using the browser APIs.
 - It solve the callback hell problem! :)
 - There is two parameters, resolve and reject.
 - Resolve is executed in case of success.
