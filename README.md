@@ -19,6 +19,7 @@
     * [Promises](#promises)
     * [Observables](#observable)
 * [Callback Queue](#callback-queue)
+* [What is next](#what-is-next)
 
 ## Javascript definition
 - Javascript is an interpreted, non typed, single thread and syncronous language |o|.
@@ -263,3 +264,11 @@ myFirstPromise.then((successMessage) => {
 ## Callback queue
 
 ![Callback queue](src/assets/callback-queue.png)
+
+## What is next
+- What is bind in js.
+- Call vs **
+- Hash tables in js
+- Modules/How it works/Export/ index.js
+- Complexity in o(n), o(1)
+- Prototype in js.

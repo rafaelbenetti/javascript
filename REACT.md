@@ -123,3 +123,5 @@ ReactDOM.render(
   document.getElementById('root')
 );
 ```
+
+- [Common Questions](https://github.com/Pau1fitz/react-interview)
