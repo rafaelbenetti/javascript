@@ -265,9 +265,54 @@ myFirstPromise.then((successMessage) => {
 
 ![Callback queue](src/assets/callback-queue.png)
 
+## Bind vs Call vs Apply
+
+# Bind
+- Creates a copy of the function to be executed in the future.
+- It binds the new context for the future execution.
+
+# Call
+- It executes the function right away.
+- The function receives the new context.
+
+# Apply
+- Same as Call but receive arguments as an array.
+
+```js
+let person = {
+  firstName: 'John',
+  lastName: 'Doe',
+  getFullName: function() {
+    return `${this.firstName} ${this.lastName}`;
+  }
+}
+
+var logName = function(firstLanguage, secondLanguage) {
+  console.log('Logged: ' + this.getFullName());
+  console.log('Arguments: ', firstLanguage, secondLanguage);
+}
+
+// bind
+var longPersonName = logName.bind(person);
+longPersonName();
+
+// call
+logName.call(person, 'en', 'pt');
+
+// apply
+logName.apply(person, ['en', 'pt']);
+```
+
+## Function Currying
+- Creating a copy of a function but with some presets parameters.
+- The parameter pre defined cannot be replaced.
+
+```js
+var longPersonName = logName.bind(person, 'en');
+longPersonName();
+```
+
 ## What is next
-- What is bind in js.
-- Call vs **
 - Hash tables in js
 - Modules/How it works/Export/ index.js
 - Complexity in o(n), o(1)
