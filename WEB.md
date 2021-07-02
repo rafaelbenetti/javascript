@@ -1,7 +1,17 @@
+# Web General Concepts
+
 * [Storage](#storage)
-    * [Cookies](#cookies)
-    * [Local Storage](#local-storage)
-    * [Session Storage](#session-storage)    
+  * [Cookies](#cookies)
+  * [Local Storage](#local-storage)
+  * [Session Storage](#session-storage)    
+* [Authentication](#authentication)
+  * [Knowledge based authentication](#knowledge-based-authentication)
+	* [Possession based authentication](#possession-based-authentication)
+	* [Multi Factor authentication](#multi-factor-authentication)
+* [Authorization](#authorization)
+  * [Cookies + Session Authorization](#cookies-session-authorization)
+	* [JWT Authorization](#jwt-authorization)
+* [Principal](#principal)
 
 # Storage
 -  Represents the way to store temporary data into the browser.
@@ -26,3 +36,44 @@
 - [Pros] Data is only available during the page session. Once the window is closed, the storage is deleted.
 - [Cons] The data is available only inside the window/tab in which it was set.
 - [Cons] It works on same-origin policy. So, data stored will only be available on the same origin.
+
+
+# Authentication
+- Its used to confirm who are you.
+- Usually contains one ID that represents the person trying to login.
+
+## Knowledge based authentication 
+- User provides user and password.
+- [Advantage] Easy to implement and use
+- [Disadvantage] Easy to access if someone discover your data.
+
+## Possesion based authentication 
+- Use some tool or device that the user has possesion Phone/Text Messages.
+	- Phone and Text Messages
+	- Token or Key Cards
+
+## Multi Factor Authentication
+- Its the combination of Knowledge and Possesion approaches.
+
+# Authorization
+- It's used to define what an user can do.
+- It can be defining roles (READONLY, SUPERUSER, ADMIN, etc)
+
+## Cookies Session Authorization
+- UI sends login request -> Backend creates a session and return session ID.
+- UI save the session ID on cookies -> Every new request the cookies are sent together.
+- [Cons] Need to store and keep the user data on the server side.
+
+![Cookies Session Authorization](src/assets/cookies-session-authorization.png)
+
+## JWT Authorization
+- UI sends login request -> Backend creates the JWT token and return to the UI.
+- Every new request the JWT Token should be sent on the request.
+- [Pros] The server does not keep any stored data.
+- [Pros] The token has a unique secret key.
+
+![JWT Authorization](src/assets/jwt-authorization.png)
+
+# Principal
+- Its the current logged user.
+- So the app keeps the principal or logged user on memory.
