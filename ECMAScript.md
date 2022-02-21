@@ -126,6 +126,7 @@ for(let num of numGenerator) {
 ```
 
 # ECMAScript2016
+
 ## Exponentiation
 - The exponentiation operator (**) raises the first operand to the power of the second operand.
 
@@ -135,7 +136,6 @@ let x = 5 ** 2;
 // Old way
 let x = Math.pow(5, 2); 
 ```
-
 
 ## Exponentiation assignment
 - Directly assigns the result after the operation.
@@ -152,6 +152,7 @@ fruits.includes('mango');
 ```
 
 # ECMAScript2017
+
 ## String padding
 ```js
 // padStart
@@ -208,7 +209,47 @@ const user = await get('user');
 ```
 
 # ECMAScript2018
+
 ## Asynchronous Iteration
+```js
+async function* asyncGenerator() {
+  let i = 0;
+  while (i < 3) {
+    yield i++;
+  }
+}
+
+(async () => {
+  for await (const num of asyncGenerator()) {
+    console.log(num);
+  }
+})();
+```
 ## Promise Finally
-## Object Rest Properties
+```js
+new Promise((resolve, reject) => {})
+  .then(() => { })
+  .catch(() => { })
+  .finally(() => { });
+```
+## Object Rest/Spread Operators
+- Rest syntax is the opposite of spread syntax
+- Spread syntax "expands" an array into its elements, while rest syntax collects multiple elements and "condenses" them into a single element.
+```js
+// With arrays
+let arr1 = [0, 1, 2];
+let arr2 = [3, 4, 5];
+
+arr1 = [...arr1, ...arr2];
+
+// With objects
+let obj1 = { foo: 'bar', x: 42 };
+let obj2 = { foo: 'baz', y: 13 };
+
+let clonedObj = { ...obj1 };
+```
 ## New RegExp Features
+- Unicode Property Escapes (\p{...})
+- Lookbehind Assertions (?<= ) and (?<! )
+- Named Capture Groups
+- s (dotAll) Flag
