@@ -3,15 +3,18 @@
 * [Storage](#storage)
   * [Cookies](#cookies)
   * [Local Storage](#local-storage)
-  * [Session Storage](#session-storage)    
+  * [Session Storage](#session-storage)
 * [Authentication](#authentication)
   * [Knowledge based authentication](#knowledge-based-authentication)
-	* [Possession based authentication](#possession-based-authentication)
-	* [Multi Factor authentication](#multi-factor-authentication)
+  * [Possession based authentication](#possession-based-authentication)
+  * [Multi Factor authentication](#multi-factor-authentication)
 * [Authorization](#authorization)
   * [Cookies + Session Authorization](#cookies-session-authorization)
-	* [JWT Authorization](#jwt-authorization)
+  * [JWT Authorization](#jwt-authorization)
 * [Principal](#principal)
+* [CI CD](#continuous_integration_and_continuous_delivery)
+  * [Continuous Integration](#continuous_integration)
+  * [Continuous Delivery](#continuous_delivery)
 
 # Storage
 -  Represents the way to store temporary data into the browser.
@@ -47,7 +50,7 @@
 - [Advantage] Easy to implement and use
 - [Disadvantage] Easy to access if someone discover your data.
 
-## Possesion based authentication 
+## Possession based authentication 
 - Use some tool or device that the user has possesion Phone/Text Messages.
 	- Phone and Text Messages
 	- Token or Key Cards
@@ -77,3 +80,13 @@
 # Principal
 - Its the current logged user.
 - So the app keeps the principal or logged user on memory.
+
+# Countinuous Integration and Continuous Delivery
+
+## Continuous Integration
+- Developers practicing continuous integration merge their changes back to the main branch as often as possible. The developer's changes are validated by creating a build and running automated tests against the build. By doing so, you avoid integration challenges that can happen when waiting for release day to merge changes into the release branch.
+
+- Continuous integration puts a great emphasis on testing automation to check that the application is not broken whenever new commits are integrated into the main branch.
+
+## Continuous Delivery
+- Continuous delivery is an extension of continuous integration since it automatically deploys all code changes to a testing and/or production environment after the build stage.
