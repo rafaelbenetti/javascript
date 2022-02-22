@@ -2,27 +2,51 @@
 - ECMAScript is a standard for a scripting language. It specifies the core features that a scripting language should provide and how those features should be implemented.
 
 * [ECMAScript2015](#ecmascript2015)
-    * [Arrow Functions](#arrow-functions)
-    * [Block Scope](#block-scope)
-    * [Let vs Const](#let-vs-const)
-    * [Template String](#template-string)
-    * [Classes](#classes)
-    * [Generator](#generator)
+    * Arrow Functions
+    * Block Scope
+    * Let vs Const
+    * Template String
+    * Classes
+    * Generator
 * [ECMAScript2016](#ecmascript2016)
-    * [Exponentiation **](#exponentiation)
-    * [Exponentiation assignment (**=)](#exponentiation_assignment)
-    * [Array.prototype.includes](#array.prototype.includes)
+    * Exponentiation **
+    * Exponentiation assignment (**=)
+    * Array.prototype.includes
 * [ECMAScript2017](#ecmascript2017)
-    * [String padding](#String_padding)
-    * [Object.entries](#Object.entries)
-    * [Object.values](#Object.values)
-    * [async functions](#async_functions)
-    * [shared memory](#shared_memory)
+    * String padding
+    * Object.entries
+    * Object.values
+    * async functions
+    * shared memory
 * [ECMAScript2018](#ecmascript2018)
-    * [Asynchronous Iteration](#asynchronous_iteration)
-    * [Promise Finally](#promise_finally)
-    * [Object Rest Properties](#object_rest_properties)
-    * [New RegExp Features](#new_regexp_feaetures)
+    * Asynchronous Iteration
+    * Promise Finally
+    * Object Rest Properties
+    * New RegExp Features
+* [ECMAScript2019](#ecmascript2019)
+    * Object.fromEntries()
+    * trimStart() and trimEnd()
+    * flat() and flatMap()
+    * Optional catch binding
+* [ECMAScript2020](#ecmascript2020)
+    * BigInt
+    * globalThis
+    * Promise.allSettled()
+    * trimStart() and trimEnd()
+    * The nullish coalescing operator
+    * Optional chaining
+    * Dynamic import
+    * Module namespace export
+* [ECMAScript2021](#ecmascript2021)
+    * Logical Assignment Operators (&&= ||= ??=)
+    * Numeric Separators (1_000)
+    * Promise.any & AggregateError
+    * String.prototype.replaceAll
+* [ECMAScript2022](#ecmascript2022)
+    * Method at() in arrays
+    * Error cause
+    * Top-level await
+    * Private slots and methods
 
 # ECMAScript2015
 
@@ -253,3 +277,190 @@ let clonedObj = { ...obj1 };
 - Lookbehind Assertions (?<= ) and (?<! )
 - Named Capture Groups
 - s (dotAll) Flag
+
+# ECMAScript2019
+
+## Object.fromEntries()
+```js
+const obj = {one: 1, two: 2, three: 3};
+
+// [["one", 1], ["two", 2], ["three", 3]]
+const entries = Object.entries(obj); 
+
+// {one: 1, two: 2, three: 3}
+const objFromEntries = Object.fromEntries(entries);
+```
+## trimStart() and trimEnd()
+- They have the same functionality as trimLeft() and trimRight()
+```js
+const name = '   Rafael   ';
+name.trimStart();
+name.trimEnd();
+```
+## flat() and flatMap()
+- If there are any empty slots in the provided array, they will be discarded.
+- flat() also accepts an optional argument that specifies the number of levels a nested array should be flattened.
+```js
+const arr = ['a', 'b', ['c', 'd']];
+const flattened = arr.flat(); // => ["a", "b", "c", "d"]
+
+const arr = ['a', 'b', ['c', ['d']]];
+const flattened = arr.flat(Infinity); // => ["a", "b", "c", "d"]
+```
+
+- The flatMap() method combines map() and flat() into one method.
+```js
+const arr = [[7.1], [8.1], [9.1]];
+const flattened = arr.flatMap(value => Math.round(value)); // [7, 8, 9] 
+```
+## Optional catch binding
+```js
+try {
+
+} 
+catch { // no (ex) needed anymore
+  
+}
+```
+
+# ECMAScript2020
+
+## BigInt
+```js
+const aBigInteger = 98765432123456789n;
+const aBigInteger = BigInt("98765432123456789");
+```
+## globalThis
+- The globalThis object provides a standard way of accessing the global object across different JavaScript environments. So, now you can write your code in a consistent way, without having to check the current running environment. Remember, however, to minimize the use of global items, since it is considered a bad programming practice.
+
+## Promise.allSettled()
+- The new Promise.all() was rejected if any of the promises had reject status.
+- The new Promise.allSettled() combinator waits for all promises to be settled, regardless of their result.
+```js 
+const promises = [fetch("/users"), fetch("/roles")];
+const allResults = await Promise.allSettled(promises);
+```
+## The nullish coalescing operator
+```js
+const size = settings.size ?? 42;
+```
+
+## Optional chaining
+```js
+const customerCity = invoice?.customer?.address?.city;
+
+// dynamic props
+const userName = user?.["name"];
+
+// functions as well
+const fullName = user.getFullName?.();
+```
+
+## Dynamic import
+```js
+const module = await import('./first-module.js');
+```
+
+## Module namespace export
+```js
+export * as utils from './utils.mjs';
+```
+
+# ECMAScript2021
+
+## Logical Assignment Operators (&&= ||= ??=)
+```js
+//"Or Or Equals"
+x ||= y;
+x || (x = y);
+
+// "And And Equals"
+x &&= y;
+x && (x = y);
+
+// "QQ Equals"
+x ??= y;
+x ?? (x = y);
+```
+## Numeric Separators (1_000)
+```js
+let fee = 123_00;       // $123 (12300 cents, apparently)
+let fee = 12_300;       // $12,300 (woah, that fee!)
+let amount = 12345_00;  // 12,345 (1234500 cents, apparently)
+let amount = 123_4500;  // 123.45 (4-fixed financial)
+let amount = 1_234_500; // 1,234,500
+```
+## Promise.any & AggregateError
+```js
+Promise.any([
+  fetch('users')
+  fetch('products')
+]).then((first) => {
+  // Any of the promises was fulfilled.
+}).catch((error) => {
+  // All of the promises were rejected.
+  console.log(error);
+});
+```
+## String.prototype.replaceAll
+```js
+const name = 'Rafael*de*Oliveira*Benetti';
+name.replaceAll('*', ' ');
+```
+
+# ECMAScript2022
+
+## Method at() in arrays
+- At() method with positive number will work the same as indexing by [] , but with negative will allow accessing values from the end.
+```js
+const arr = [1,2,3,4]
+arr.at(-2) // 3
+
+const str = "1234"
+str.at(-2) // '3'
+```
+
+## Error cause
+```js
+throw new Error('I am the result of another error', { cause: error })
+```
+
+## Top-level await
+```js
+const serviceName = await fetch('users')
+const service = await import(`/services/${serviceName}.js`)
+```
+
+## Private slots and methods
+- Private slot or property:
+```js
+class Human {
+  #name = "John";
+  
+  setName(name) {
+    this.#name = name;
+  }
+}
+
+const human = new Human()
+human.#name = 'Amy'  // ERROR!
+human.setName('Amy') // OK
+```
+
+- Private method:
+```js
+class Human {
+  name = "John";
+  
+  constructor(name) {
+    this.#setName('Amy') // OK
+  }
+  
+  #setName(name) {
+    this.name = name;
+  }
+}
+
+const human = new Human()
+human.#setName('Amy') // ERROR!
+```
