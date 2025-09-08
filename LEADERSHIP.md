@@ -133,3 +133,257 @@
 - Continuously measure **cost, performance, adoption**.
 
 **Takeaway:** Modernization is a journey, not a big-bang rewrite.
+
+---
+
+## 11) How do you manage technical debt?
+
+**Answer:**
+
+- Track it in backlog with clear visibility.
+- Balance feature work with refactoring (e.g., 20% sprint capacity).
+- Use metrics (cyclomatic complexity, code smells) to justify debt reduction.
+
+**Takeaway:** Debt is manageable if you treat it like real debt — monitor & pay down.
+
+---
+
+## 12) How do you mentor junior developers?
+
+**Answer:**
+
+- Pair programming & code reviews.
+- Share design documents & walk-throughs.
+- Encourage questions without fear.
+- Assign progressively challenging tasks.
+
+**Takeaway:** Mentorship = building confidence + independence.
+
+---
+
+## 13) How do you measure team performance?
+
+**Answer:**
+
+- Delivery metrics: velocity, throughput, lead time.
+- Quality metrics: bug count, escaped defects.
+- Team health: turnover, engagement surveys.
+- Balance numbers with **qualitative feedback**.
+
+**Takeaway:** People > metrics, but metrics help identify trends.
+
+---
+
+## 14) How do you handle underperforming team members?
+
+**Answer:**
+
+- Start with 1:1 discussions to identify root cause (skill gap, motivation, personal issues).
+- Provide coaching & training.
+- Set clear goals with timelines.
+- Escalate only if consistent issues persist.
+
+**Takeaway:** Be empathetic but hold accountability.
+
+---
+
+## 15) How do you manage distributed/remote teams?
+
+**Answer:**
+
+- Overcommunicate (daily standups, async updates).
+- Use collaboration tools (Slack, Jira, Miro).
+- Respect time zones, set core overlap hours.
+- Build team culture with virtual activities.
+
+**Takeaway:** Remote success = communication + empathy.
+
+---
+
+## 16) How do you prioritize features vs technical improvements?
+
+**Answer:**
+
+- Use **impact vs effort matrix**.
+- Align priorities with business goals.
+- Schedule **regular tech debt cleanup**.
+- Present trade-offs clearly to stakeholders.
+
+**Takeaway:** Balance user value and sustainability.
+
+---
+
+## 17) How do you manage stakeholder expectations?
+
+**Answer:**
+
+- Set realistic timelines with buffer.
+- Share progress openly (dashboards, demos).
+- Highlight risks early.
+- Say “no” politely but explain trade-offs.
+
+**Takeaway:** Transparency builds trust.
+
+---
+
+## 18) How do you keep up with technology trends?
+
+**Answer:**
+
+- Follow industry blogs, newsletters.
+- Attend conferences, internal knowledge shares.
+- Encourage **guilds/chapters** within company.
+- Experiment with POCs, hackathons.
+
+**Takeaway:** Stay curious, but pragmatic.
+
+---
+
+## 19) How do you ensure test coverage and quality?
+
+**Answer:**
+
+- Define test pyramid (unit > integration > E2E).
+- Enforce minimum coverage in CI.
+- Encourage TDD/BDD where useful.
+- Automate regression tests.
+
+**Takeaway:** Testing is part of development, not an afterthought.
+
+---
+
+## 20) How do you handle scope creep?
+
+**Answer:**
+
+- Capture requests in backlog, don’t add mid-sprint.
+- Negotiate priority vs timeline vs resources.
+- Educate stakeholders on Agile principles.
+
+**Takeaway:** Guard team focus, but stay flexible.
+
+---
+
+## 21) How do you choose between build vs buy decisions?
+
+**Answer:**
+
+- Evaluate core competency vs commodity.
+- Calculate TCO (time + maintenance).
+- Consider vendor lock-in, scalability.
+- Involve stakeholders in decision.
+
+**Takeaway:** Build what differentiates, buy what accelerates.
+
+---
+
+## 22) How do you handle knowledge silos?
+
+**Answer:**
+
+- Encourage documentation (Confluence, ADRs).
+- Rotate responsibilities (on-call, ownership).
+- Pair programming & cross-training.
+
+**Takeaway:** Spread knowledge to reduce bus factor.
+
+---
+
+## 23) How do you manage cross-team dependencies?
+
+**Answer:**
+
+- Identify dependencies in planning.
+- Use dependency boards in Jira.
+- Sync with other leads regularly.
+- If possible, **decouple with APIs/contracts**.
+
+**Takeaway:** Proactive coordination prevents blockers.
+
+---
+
+## 24) How do you manage high-pressure deadlines?
+
+**Answer:**
+
+- Assess feasibility before committing.
+- Cut scope (MVP mindset).
+- Increase collaboration (swarming tasks).
+- Prevent burnout with sustainable pace.
+
+**Takeaway:** Deliver smart, not just fast.
+
+---
+
+## 25) How do you measure success as a team leader?
+
+**Answer:**
+
+- Business outcomes met (revenue, cost savings).
+- Team health & growth.
+- Low attrition, high engagement.
+- Predictable delivery.
+
+**Takeaway:** Success = business value + happy team.
+
+---
+
+## 26) How do you encourage innovation?
+
+**Answer:**
+
+- Allocate time (hack days, 10% innovation time).
+- Reward experimentation, even failures.
+- Share POCs across teams.
+
+**Takeaway:** Innovation thrives in safety + support.
+
+---
+
+## 27) How do you communicate with non-technical stakeholders?
+
+**Answer:**
+
+- Use analogies & simple language.
+- Show visuals (diagrams, dashboards).
+- Translate “tech debt” into “business risk”.
+
+**Takeaway:** Speak their language, not yours.
+
+---
+
+## 28) How do you manage vendor/third-party integrations?
+
+**Answer:**
+
+- Evaluate security & compliance.
+- Ensure SLAs & support contracts.
+- Wrap integrations with abstraction layers.
+- Monitor with logging/alerts.
+
+**Takeaway:** Treat vendors like internal dependencies.
+
+---
+
+## 29) How do you balance innovation vs stability?
+
+**Answer:**
+
+- Use feature flags for new tech.
+- Run pilot projects before full adoption.
+- Keep critical systems stable while innovating in less risky areas.
+
+**Takeaway:** Balance risk with reward.
+
+---
+
+## 30) How do you build a strong team culture?
+
+**Answer:**
+
+- Celebrate wins, small and big.
+- Encourage collaboration over competition.
+- Build psychological safety.
+- Lead by example (respect, accountability).
+
+**Takeaway:** Culture eats strategy for breakfast.
