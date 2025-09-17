@@ -1,107 +1,284 @@
-# Review of main benefits of pre-processors
+# 🎨 SCSS (Sass) Prep — Overview + Top 20 Interview Q&A
 
-* [Pre Processors](#pre-processors)
-    * [Variables](#variables)
-    * [Nesting](#nesting)
-    * [Imports](#imports)
-    * [Mixins](#mixins)
-    * [Extend / Inheritance](#extend/inheritance)
-    * [Operators](#operators)
+---
 
-## Pre Processors
-- A CSS preprocessor is a program that lets you generate CSS from the preprocessor's own unique syntax. There are many CSS preprocessors to choose from, however most CSS preprocessors will add some features that don't exist in pure CSS, such as mixin, nesting selector, inheritance selector, and so on. These features make the CSS structure more readable and easier to maintain.
+## 📖 Quick Overview
 
-## Variables
-- Think of variables as a way to store information that you want to reuse throughout your stylesheet. 
+- **What is SCSS (Sass)?**
+
+  - SCSS is a **CSS preprocessor** — it adds **variables, nesting, mixins, inheritance, functions**, then compiles to standard CSS.
+  - SCSS = _Sassy CSS_ (newer syntax, closer to CSS).
+  - Sass (indented syntax) = older, less common today.
+
+- **Key Features:**
+
+  - **Variables** → reuse colors, sizes.
+  - **Nesting** → cleaner, structured CSS.
+  - **Mixins** → reusable chunks of CSS.
+  - **Extend/Inheritance** → share style rules.
+  - **Partials & Imports** → modularize styles.
+  - **Operators & Functions** → math, color manipulation.
+
+- **Benefits:**
+  - DRY (don’t repeat yourself).
+  - Scalable, maintainable styles.
+  - Works with modern frameworks (Angular, React, Next.js).
+
+---
+
+## ❓ Top 20 Questions & Answers
+
+### 1) What is SCSS and how does it differ from Sass?
+
+- **SCSS** → newer syntax, looks like CSS (`{}` + `;`).
+- **Sass** → indentation-based, no braces/semicolons.  
+  👉 Most projects today use **SCSS** for better compatibility.
+
+---
+
+### 2) What are variables in SCSS?
+
+- Store reusable values.
 
 ```scss
-$font-stack: Helvetica, sans-serif;
-$primary-color: #333;
-
+$primary-color: #0070f3;
 body {
-  font: 100% $font-stack;
   color: $primary-color;
 }
 ```
 
-## Nesting
-- Pre processors will let you nest your CSS selectors in a way that follows the same visual hierarchy of your HTML
+---
+
+### 3) What are mixins?
+
+- Reusable blocks of CSS with parameters.
 
 ```scss
-nav {
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container {
+  @include flex-center;
+}
+```
+
+---
+
+### 4) What is the difference between `@mixin` and `@extend`?
+
+- **Mixin** = reusable snippet, can take arguments.
+- **Extend** = inheritance, shares selectors.
+
+```scss
+%btn {
+  padding: 10px;
+}
+.btn-primary {
+  @extend %btn;
+  background: blue;
+}
+```
+
+---
+
+### 5) How does nesting work in SCSS?
+
+- Nest selectors inside parents.
+
+```scss
+.nav {
   ul {
-    margin: 0;
-    padding: 0;
     list-style: none;
   }
-  li { 
-    display: inline-block; 
+  li {
+    display: inline;
   }
 }
 ```
 
-## Imports
-- You don't have to write all your styles in a single file. You can split it up however you want with the @import rule.
+---
+
+### 6) What are partials in SCSS?
+
+- Files starting with `_` (not compiled directly).
+- Example: `_variables.scss` imported into `main.scss` with:
 
 ```scss
-// _base.scss
-$font-stack:    Helvetica, sans-serif;
-$primary-color: #333;
-
-body {
-  font: 100% $font-stack;
-  color: $primary-color;
-}
+@import "variables";
 ```
 
-```scss
-// styles.scss
-@import 'base';
+---
 
-.inverse {
-  background-color: $primary-color;
-  color: white;
-}
-```
+### 7) How do you organize SCSS in large projects?
 
-## Mixins 
-- Some things in CSS are a bit tedious to write, especially with CSS3 and the many vendor prefixes that exist. A mixin lets you make groups of CSS declarations that you want to reuse throughout your site. You can even pass in values to make your mixin more flexible. A good use of a mixin is for vendor prefixes. Here's an example for transform.
+- Use **7–1 architecture**:
+  - `base/`, `components/`, `layout/`, `pages/`, `themes/`, `utils/`, `vendors/`, + `main.scss`.
+- Promotes scalability and modularity.
 
-```scss
-@mixin transform($property) {
-  -webkit-transform: $property;
-  -ms-transform: $property;
-  transform: $property;
-}
-.box { @include transform(rotate(30deg)); }
-```
+---
 
-## Extend/Inheritance 
-- Using @extend lets you share a set of CSS properties from one selector to another. It helps keep your Sass very DRY. 
+### 8) How do operators work in SCSS?
 
-```scss
-%message-shared {
-  border: 1px solid #ccc;
-  padding: 10px;
-  color: #333;
-}
-
-.success {
-  @extend %message-shared;
-  border-color: green;
-}
-
-.error {
-  @extend %message-shared;
-  border-color: red;
-}
-``` 
-
-## Operators
-- Pre processors have a handful of standard math operators like +, -, *, /, and %. 
+- Math directly in styles.
 
 ```scss
 .container {
-  width: 600px / 960px * 100%;
+  width: (100% / 3);
 }
 ```
+
+---
+
+### 9) How do SCSS functions work?
+
+- Built-in (e.g., `darken()`, `lighten()`, `mix()`).
+- Custom:
+
+```scss
+@function pxToRem($px) {
+  @return $px / 16 * 1rem;
+}
+h1 {
+  font-size: pxToRem(32);
+}
+```
+
+---
+
+### 10) What is the difference between `@use` and `@import`?
+
+- `@import` → old, loads files multiple times, pollutes global scope.
+- `@use` → modern, scoped, prevents conflicts.
+
+```scss
+@use "colors" as c;
+h1 {
+  color: c.$primary;
+}
+```
+
+---
+
+### 11) How do you conditionally apply styles in SCSS?
+
+- Use `@if`, `@else`.
+
+```scss
+$theme: dark;
+body {
+  @if $theme == dark {
+    background: black;
+  } @else {
+    background: white;
+  }
+}
+```
+
+---
+
+### 12) What are SCSS loops?
+
+- `@for`, `@each`, `@while`.
+
+```scss
+@for $i from 1 through 3 {
+  .m-#{$i} {
+    margin: #{$i}rem;
+  }
+}
+```
+
+---
+
+### 13) What’s the difference between SCSS and CSS variables?
+
+- **SCSS variables** → compile-time (don’t exist in runtime CSS).
+- **CSS variables** → runtime, live in the browser, support dynamic theming.  
+  👉 Often used **together**.
+
+---
+
+### 14) How do you debug SCSS?
+
+- Use `@debug` and `@warn`.
+
+```scss
+@debug $primary-color;
+```
+
+---
+
+### 15) How do you use color functions in SCSS?
+
+- Examples:
+
+```scss
+.button {
+  background: lighten(#0070f3, 20%);
+}
+.alert {
+  background: mix(red, yellow, 50%);
+}
+```
+
+---
+
+### 16) How do you structure responsive design with SCSS?
+
+- Use mixins with media queries.
+
+```scss
+@mixin respond($breakpoint) {
+  @if $breakpoint == mobile {
+    @media (max-width: 600px) {
+      @content;
+    }
+  }
+}
+.container {
+  @include respond(mobile) {
+    width: 100%;
+  }
+}
+```
+
+---
+
+### 17) How do placeholders (%) work in SCSS?
+
+- Like abstract classes in OOP → can’t compile on their own.
+
+```scss
+%card {
+  box-shadow: 0 2px 4px #aaa;
+}
+.product {
+  @extend %card;
+}
+```
+
+---
+
+### 18) How does SCSS improve maintainability?
+
+- Modularity, DRY principles, theming, scoped variables.
+- Easier for large teams than plain CSS.
+
+---
+
+### 19) How do you compile SCSS?
+
+- With CLI: `sass style.scss style.css`.
+- With build tools: Webpack, Vite, Angular CLI, Next.js config.
+
+---
+
+### 20) What are common SCSS pitfalls?
+
+- Over-nesting (leads to deep selectors).
+- Mixing too much logic → hard to maintain.
+- Using too many `@extends` → selector bloat.
+
+---
