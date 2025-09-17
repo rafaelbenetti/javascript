@@ -28,6 +28,10 @@ It provides a full ecosystem: components, dependency injection, forms, routing, 
 - **Forms** → reactive or template-driven.
 - **RxJS & Signals** → async streams + reactivity.
 
+## What is tree-shaking in Angular
+
+- Tree-shaking is a dead code elimination technique used by Angular (through Webpack + Terser) to remove unused code during the build process. It analyzes your imports and application dependency graph, then eliminates any functions, classes, or modules that are never actually used in the final bundle.
+
 ---
 
 # 🅰️ Angular — Detailed Interview Q&A
