@@ -658,6 +658,15 @@ async function toggle() {
 
 ---
 
+### ➕ 45b) "Tell me about a feature you built with reusable components." (STAR, real)
+
+- **S/T:** OneHome (top-5 US home-search app) needed Favorites/sentiments: **like/dislike** set by the consumer, **recommend/exclude** set by the agent, with both seeing all 4.
+- **A:** A page with a **map plus 4 tabs**. Each tab is an **independent component** built from **shared components** (list, property card, map integration). **One API endpoint filtered by sentiment type** feeds all tabs, so one data hook is parameterised by sentiment. Backend data is in Elasticsearch, fed by Kafka from Matrix (external MLS), and changes are synced back to Matrix.
+- **R:** Four views from one implementation, consistent for consumers and agents. **[Add a real outcome if you have one.]**
+- Likely follow-ups: per-tab caching keys (`['favorites', sentiment]` in React Query) *[confirm what you used]*, optimistic updates when changing a sentiment, keeping map pins and the list in sync, and role-based permissions (consumer vs agent). Full backend follow-ups are in `../1-java-spring-backend/java-spring-boot-essentials.md`.
+
+---
+
 ### ➕ 46) "Tell me how you optimised a slow React page." (STAR, real)
 
 - **S/T:** OneHome search and listing-detail pages were slow.

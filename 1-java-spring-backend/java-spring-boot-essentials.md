@@ -3,7 +3,7 @@
 > Group 1 · Priority HIGH · Prep guide Q14–16 · Status: new file
 
 ## Say it in 30 seconds
-"Spring Boot is Spring with auto-configuration, starters and an embedded server, so a service is one runnable jar. The core is the IoC container: I declare beans with `@Service`, `@Repository` and `@RestController`, and inject them through the constructor. A request goes through a thin controller that validates a DTO, a service that holds the business logic and the transaction, and a Spring Data repository. Errors are mapped once in a `@RestControllerAdvice` that returns `ProblemDetail`. My daily backend is NestJS, which copies this model (modules, providers, DI, decorators, guards), so Spring feels familiar. **[Your real Spring example: service, endpoint, what you changed]**."
+"Spring Boot is Spring with auto-configuration, starters and an embedded server, so a service is one runnable jar. The core is the IoC container: I declare beans with `@Service`, `@Repository` and `@RestController`, and inject them through the constructor. A request goes through a thin controller that validates a DTO, a service that holds the business logic and the transaction, and a Spring Data repository. Errors are mapped once in a `@RestControllerAdvice` that returns `ProblemDetail`. My daily backend is NestJS, which copies this model (modules, providers, DI, decorators, guards), so Spring feels familiar. A real example of my full-stack work: the OneHome Favorites/sentiments feature, with one filtered endpoint, an Elasticsearch read model fed by Kafka, and sync back to an external MLS (story below)."
 
 ---
 
@@ -182,7 +182,7 @@ public class SecurityConfig {
 ## 2. Interview questions (spoken model answers)
 
 **Q: How much Spring Boot have you done?**
-"React and TypeScript are my strongest area, but I've worked on Java/Spring Boot services. At EPAM: **[your real example: which service, what you added (endpoint, DTO, validation, query), how you tested it]**. At Luxoft I integrated front-ends with Java and C# REST APIs. My day-to-day backend is NestJS, which is deliberately modelled on Spring (modules, DI, decorators, guards, filters), so the mental model carries over directly. On Benwer Cars I built the whole backend myself in NestJS/Fastify with Postgres." *Don't inflate years.*
+"React and TypeScript are my strongest area, but I work end to end. The best example is from EPAM: At EPAM on OneHome, a top-5 US home-search app, I built the Favorites/sentiments feature: 4 sentiments (like and dislike from the consumer, recommend and exclude from the agent), shown on a map plus 4 tabs. One API endpoint filters by sentiment type. The data lives in Elasticsearch, fed by Kafka events because the source of truth is Matrix, an external MLS provider, and on every change our backend service sends the update back to Matrix to keep them in sync. **[If you also have hands-on Spring Boot work, add one line on it here. Don't present the Favorites service as Spring.]** At Luxoft I integrated front-ends with Java and C# REST APIs. My day-to-day backend is NestJS, which is deliberately modelled on Spring (modules, DI, decorators, guards, filters), so the mental model carries over directly. On Benwer Cars I built the whole backend myself in NestJS/Fastify with Postgres." *Don't inflate years.*
 
 **Q: What is dependency injection and why constructor injection?**
 "The container builds the objects and hands each one its dependencies, instead of the class creating them. That gives loose coupling and easy testing, because in a unit test I just pass a Mockito mock to the constructor. Constructor injection makes dependencies explicit and `final`, the object is never half-built, and too many constructor parameters is a visible smell that the class does too much. Field injection hides all of that."
@@ -204,6 +204,57 @@ public class SecurityConfig {
 
 **Q: How do you call another service resiliently?**
 "`RestClient` with connect and read timeouts, retries with backoff only for idempotent calls, and a circuit breaker (Resilience4j) so a slow dependency doesn't exhaust threads. Correlation IDs are propagated for tracing. If the call doesn't need to be synchronous, I'd publish an event to a queue instead. That's the pattern I know from Kafka at EPAM, and SQS/SNS on AWS."
+
+---
+
+---
+
+## ⭐ Real STAR story: OneHome Favorites / Sentiments (EPAM)
+> Rafael's real feature. Call it **"our backend service"**. Don't say it was Spring. Facts below are confirmed. Anything in *italics + [confirm]* is a suggested follow-up answer, so say it only if true, or frame it as "how I'd harden it".
+
+**S, Situation:** OneHome is one of the top-5 home-search apps in the US. Consumers and their real-estate agents needed a shared way to mark and review properties.
+**T, Task:** Build the Favorites/sentiments feature end to end.
+**A, Action:**
+- **4 sentiments**: **like** and **dislike** are set by the consumer, **recommend** and **exclude** are set by the agent. Both the consumer and the agent see all 4 tabs.
+- **UI**: a page with a **map plus 4 tabs**. Each tab is an **independent component** built from **shared components** (list, property card, map integration), so the four views reuse one implementation.
+- **API**: **a single endpoint that filters by sentiment type** (e.g. `GET …/favorites?sentiment=LIKE`), not four endpoints.
+- **Data**: stored in **Elasticsearch**, populated from **Kafka events**, because the **source of truth is Matrix**, an external MLS provider.
+- **Two-way sync**: on every sentiment change, our backend service **sends the update back to Matrix** so both systems stay in sync.
+**R, Result:** consumers and agents collaborate on one consistent set of 4 sentiment lists, shown on the map and in tabs. **[Add a real outcome if you have one: usage, adoption, fewer support tickets, performance.]**
+
+### Likely follow-ups (model answers)
+**"Why one endpoint with a filter instead of four?"**
+"The four sentiments are the same resource, a favourite with a type, so one endpoint keeps the contract small: `sentiment` is a query parameter validated against an enum, plus pagination. The front end reuses one data hook for all four tabs. Adding a fifth sentiment is a new enum value, not a new endpoint. Authorisation still applies per sentiment: only agents can set recommend and exclude, only consumers can set like and dislike."
+
+**"Why Elasticsearch and not just a relational table?"**
+"Two reasons: filtering and the map. Elasticsearch is built for fast filtered queries over many fields (sentiment, user, agent, price, beds, status) and has native **geo queries** (`geo_bounding_box` for the visible map area, `geo_distance`, geo aggregations for clustering pins). The data originates in Matrix and arrives as events anyway, so a search-optimised read model fed from Kafka fits well. It's a CQRS-style read side."
+
+**"How do you make the Kafka consumer safe against duplicates and replays?"**
+"Kafka is at-least-once, so the consumer must be **idempotent**. The cleanest way is an **upsert with a deterministic document ID**, e.g. `userId + listingId` (or `userId + listingId + sentiment`, depending on the model). Re-processing the same event overwrites the same document instead of creating duplicates. For ordering, events for the same key go to the same partition (partition key = listing or user), and an event version or timestamp lets the consumer skip stale updates (external versioning in Elasticsearch, or compare-and-skip)." *[confirm which of these you actually used]*
+
+**"What if the sync back to Matrix fails?"**
+"Matrix is external, so failures are expected: timeouts, rate limits, outages. The user's action shouldn't fail because Matrix is down. I'd **retry with exponential backoff and jitter** for transient errors, make the call idempotent so retries are safe, and after N attempts send it to a **dead-letter queue/topic** with alerting, plus a replay path once Matrix recovers. Monitoring on DLQ depth and sync error rate goes to PagerDuty. Also a reconciliation job, because Matrix is the source of truth, so the Kafka feed eventually corrects any drift." *[confirm what was in place vs what you'd add]*
+
+**"Isn't there a race between your write to Matrix and the Kafka event coming back?"**
+"Yes, that's the classic two-way-sync problem. Options: treat Matrix as the source of truth and apply updates only from the event stream (the UI updates optimistically), or version the records so an older event can't overwrite a newer local change. The key is one clear owner per field and idempotent, version-aware updates." *[confirm how it was handled]*
+
+**"How did you test it?"**
+"Component tests for the shared tab components and the sentiment filter, tests for the endpoint's filtering and permissions, and tests for the consumer's idempotency (same event twice gives one document). It all ran in the pipeline with our 80% coverage gate." *[adjust to what was actually tested]*
+
+**Spring translation (if they ask "how would this look in Spring?")**
+```java
+@GetMapping("/api/v1/favorites")
+public Page<FavoriteResponse> list(@RequestParam Sentiment sentiment, Pageable pageable,
+                                   @AuthenticationPrincipal Jwt user) {
+    return favorites.find(user.getSubject(), sentiment, pageable);     // enum binding gives 400 on bad values
+}
+
+@KafkaListener(topics = "matrix.favorites")
+public void on(FavoriteEvent e) {
+    es.index(i -> i.index("favorites").id(e.userId() + ":" + e.listingId())   // deterministic id = upsert
+                   .document(FavoriteDoc.from(e)));
+}
+```
 
 ---
 

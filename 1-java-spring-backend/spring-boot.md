@@ -17,7 +17,7 @@
 ---
 
 ## ➕ Say it in 30 seconds
-"Spring Boot is Spring plus auto-configuration, starters and an embedded server, so a service is one jar. The IoC container wires beans via constructor injection. A request flows through the security filter chain to a thin `@RestController` that validates a DTO, a `@Transactional` service, and a Spring Data JPA repository. Errors are mapped once with `@RestControllerAdvice` and ProblemDetail. Boot 3 needs Java 17+ and uses `jakarta.*`. My day-to-day backend is NestJS, which mirrors Spring's modules, DI, decorators and guards. **[Your real Spring example]**."
+"Spring Boot is Spring plus auto-configuration, starters and an embedded server, so a service is one jar. The IoC container wires beans via constructor injection. A request flows through the security filter chain to a thin `@RestController` that validates a DTO, a `@Transactional` service, and a Spring Data JPA repository. Errors are mapped once with `@RestControllerAdvice` and ProblemDetail. Boot 3 needs Java 17+ and uses `jakarta.*`. My day-to-day backend is NestJS, which mirrors Spring's modules, DI, decorators and guards. My best end-to-end example is OneHome's Favorites/sentiments feature (one endpoint filtered by sentiment, Elasticsearch fed by Kafka, sync back to the external MLS). The STAR story is in `java-spring-boot-essentials.md`."
 
 ---
 
