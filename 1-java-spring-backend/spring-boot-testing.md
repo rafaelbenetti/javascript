@@ -10,6 +10,8 @@
 ## 1. Core concepts
 
 ### Unit test: service with Mockito (no Spring context, milliseconds)
+`MockitoExtension` creates the mocks and calls the constructor. Nothing starts an `ApplicationContext`, so a failure is your logic, not a missing bean. It's the same move as `jest.mock` on a Nest provider and constructing the service yourself. Constructor injection is what makes `@InjectMocks` reliable. Field injection makes Mockito set private fields by reflection, which hides a broken constructor.
+
 ```java
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
@@ -42,6 +44,8 @@ class BookingServiceTest {
 - Mockito: `when/thenReturn/thenThrow`, `verify(mock, times(1))`, `ArgumentCaptor`, `any()`/`eq()` (if you use a matcher for one argument, use matchers for all of them). Strict stubs flag unused stubbing.
 
 ### Controller slice: `@WebMvcTest`
+MockMvc calls the `DispatcherServlet` in memory: argument resolvers, Bean Validation and your `@RestControllerAdvice` all run, but not the service or the database. `@MockitoBean` puts a Mockito fake where the real service bean would be. A 400 here means the DTO constraints or the exception handler are wrong, which a unit test of the service never sees. It's the Spring version of Supertest against one router, with the service mocked.
+
 ```java
 @WebMvcTest(ListingController.class)               // loads only the web layer (MVC, advice, converters)
 class ListingControllerTest {
@@ -69,6 +73,8 @@ class ListingControllerTest {
 With Spring Security on the classpath, add `@WithMockUser` or `.with(jwt())` from `spring-security-test`. Otherwise you get 401s.
 
 ### Repository slice: `@DataJpaTest`
+This slice starts JPA and your repositories only, and wraps each test in a transaction that rolls back, so tests don't have to clean rows. `@AutoConfigureTestDatabase(replace = NONE)` refuses the embedded H2 and uses the database you configured. `@ServiceConnection` reads the Testcontainers JDBC URL and registers a `DataSource`, which is what `@DynamicPropertySource` used to do by hand. You want a real MySQL here because a custom query can pass on H2 and fail on InnoDB's dialect.
+
 ```java
 @DataJpaTest                                       // JPA + repos only, transactional + rolled back per test
 @AutoConfigureTestDatabase(replace = Replace.NONE) // use the Testcontainers DB, not embedded H2
@@ -87,6 +93,8 @@ class ListingRepositoryTest {
 - `@ServiceConnection` (Boot 3.1+) removes the `@DynamicPropertySource` boilerplate.
 
 ### Full integration: `@SpringBootTest`
+This boots the same auto-configuration as production, on a random port, so filters, Jackson and the database all participate. Spring caches that context and reuses it when the next test has the same configuration. A different `@MockitoBean` set is a different cache key, which is why replacing beans all over the suite gets slow. Keep these for a few real flows, not for every branch.
+
 ```java
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -99,6 +107,8 @@ class BookingFlowIT {
 Use these sparingly, because they're slow (the full context starts). Spring caches the context between tests with identical configuration, and every distinct `@MockitoBean` combination creates a new context.
 
 ### Other tools
+Contract tests (Pact or Spring Cloud Contract) pin the JSON the React app expects, so a renamed field fails CI instead of production. WireMock stands in for a downstream HTTP API. Awaitility polls until an async consumer has written, instead of `Thread.sleep`. JaCoCo instruments bytecode and `jacoco:check` fails the Maven build under the threshold. The gate belongs in Jenkins. The assertions still have to check behaviour, or the percentage is just lines executed.
+
 - **Contract tests**: Spring Cloud Contract or Pact, so the React/BFF consumer and the Spring producer agree on the API. Or an OpenAPI spec plus generated typed clients (you used OpenAPI-generated clients on Benwer Cars).
 - **External HTTP**: WireMock / `MockRestServiceServer`.
 - **Messaging**: Testcontainers for Kafka or LocalStack (SQS/SNS), and Awaitility for async assertions.

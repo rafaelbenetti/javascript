@@ -11,6 +11,8 @@
 ## 1. Core concepts
 
 ### Indexes (InnoDB B+tree)
+InnoDB stores the table itself as a B+tree ordered by the primary key, so a random UUID primary key scatters inserts across leaf pages. A secondary index leaf stores the primary key, not the whole row. A query that needs a column that isn't in that index does a second lookup into the clustered index. A covering index holds every column the query needs, so that second hop never happens. The column order is the sort order: the tree can seek a leftmost prefix, not a middle column. Postgres indexes the same way, except the table heap is separate from the primary key.
+
 - The **clustered index** is the primary key. Rows are physically stored in PK order. Secondary indexes store the PK value, so a secondary lookup is index → PK → row ("bookmark lookup").
 - A **composite index** `(city, status, price)` serves `WHERE city=? AND status=?` and `WHERE city=? AND status=? ORDER BY price`. It does **not** serve `WHERE status=?` alone (**leftmost-prefix rule**). Order the columns as equality first, then range or sort.
 - **Covering index**: the index contains every column the query needs, so the table is never touched. `EXPLAIN` shows `Using index`.
@@ -27,6 +29,8 @@ LIMIT 20;
 ```
 
 ### Reading `EXPLAIN` (MySQL)
+The optimizer picks a plan before it runs. `type: ALL` means it walked every row. `rows` is an estimate, which is why `EXPLAIN ANALYZE` (actual time) is the one to trust when the estimate looks wrong. `Using filesort` means the `ORDER BY` couldn't be satisfied by the index order, so MySQL sorted the rows itself.
+
 | Field | Look for |
 |---|---|
 | `type` | `const`/`eq_ref`/`ref`/`range` are good. **`ALL`** is a full table scan, and `index` is a full index scan |
@@ -37,6 +41,8 @@ LIMIT 20;
 MySQL 8.0.18+ has `EXPLAIN ANALYZE`, which shows actual timings. In Postgres, `EXPLAIN (ANALYZE, BUFFERS)` gives Seq Scan vs Index Scan.
 
 ### Index killers
+The index is ordered by the stored value of `created_at`, not by `DATE(created_at)`. A function on the column forces a scan because the engine can't walk the tree to the matching leaves. A leading `%` in `LIKE` has the same problem: the index is ordered from the start of the string. Rewrite the predicate so the column stands alone on one side. That's what "sargable" means.
+
 ```sql
 -- ❌ function on column: index on created_at unusable
 WHERE DATE(created_at) = '2026-10-09'
@@ -51,6 +57,8 @@ WHERE phone = 600123123
 ```
 
 ### Pagination
+`OFFSET 100000` still walks and throws away those rows, so a deep page costs as much as reading everything before it. Keyset pagination seeks the index at the last seen key and reads only the next page. The client must send that key back. You lose "jump to page 37".
+
 ```sql
 -- ❌ deep offset: reads and discards 100,000 rows
 SELECT ... ORDER BY id LIMIT 20 OFFSET 100000;
@@ -59,6 +67,8 @@ SELECT ... WHERE id > :lastSeenId ORDER BY id LIMIT 20;
 ```
 
 ### Joins and aggregates (quick refresh)
+The engine matches the join key, ideally through an index on the foreign key, and then filters. A condition on the right table in `WHERE` runs after the outer join and drops the unmatched NULL rows, which silently turns a `LEFT JOIN` into an inner join. Put that condition in `ON` if those left rows should survive. `WHERE` filters rows before grouping. `HAVING` filters the groups.
+
 ```sql
 -- Listings per owner, including owners with zero listings
 SELECT o.id, o.name, COUNT(l.id) AS listings
@@ -77,17 +87,23 @@ SELECT * FROM (
 - A filter on the right table in `WHERE` turns a LEFT JOIN into an inner join. Put it in `ON`.
 
 ### Transactions, isolation and locking (InnoDB)
+InnoDB keeps old row versions in the undo log. Under REPEATABLE READ, the first consistent read builds a snapshot, so another transaction's commit doesn't change what you see if you read the same rows again. A locking read (`SELECT ... FOR UPDATE`) also takes next-key locks on the gaps around those rows, which blocks a phantom insert. A deadlock is two transactions each holding a lock the other needs. InnoDB picks one victim, rolls it back, and your code has to retry.
+
 - ACID. The InnoDB default isolation is **REPEATABLE READ** (MVCC consistent snapshot, plus gap/next-key locks to prevent phantoms on locking reads). Postgres and most others default to READ COMMITTED.
 - `SELECT ... FOR UPDATE` locks rows. Keep transactions short. **Deadlocks** happen when two transactions lock rows in opposite order. InnoDB detects them and rolls one back, so the app must **retry**. Lock in a consistent order.
 - Optimistic locking via a version column (JPA `@Version`).
 
 ### Schema design
+Third normal form keeps each fact in one place so an update can't disagree with itself. Denormalise only a read path you've measured, and then that copy has to be updated in the same transaction or rebuilt by a job.
+
 - Normalise first (3NF), then denormalise deliberately for read paths.
 - Choose types carefully: `DECIMAL(12,2)` for money, `BIGINT` IDs, `utf8mb4` charset (real UTF-8, including emoji), `DATETIME`/`TIMESTAMP` in UTC.
 - Foreign keys with indexes, `NOT NULL` where possible. Migrations go through Flyway/Liquibase.
 - Large-table changes: online DDL (`ALGORITHM=INSTANT/INPLACE`) or gh-ost/pt-online-schema-change. Expand → migrate → contract for zero downtime.
 
 ### Aurora MySQL specifics
+The database nodes don't store the pages. A shared storage volume replicates each write six times across three availability zones, which is why adding a reader doesn't copy a full disk and why failover is promoting a replica instead of restoring one. Readers can still be a few milliseconds behind, so a read of the user's own write should go to the writer.
+
 - MySQL-compatible (Aurora MySQL v3 = MySQL 8.0 compatible). Compute is separated from a **distributed storage layer: 6 copies across 3 AZs**, auto-growing.
 - **Writer endpoint** (one primary) plus **reader endpoint** load-balancing up to **15 replicas** with typically millisecond-level replica lag. Failover to a replica usually takes under ~30 s.
 - **Aurora Serverless v2**: auto-scales capacity in fine-grained ACUs, which suits spiky or dev workloads.
@@ -95,7 +111,7 @@ SELECT * FROM (
 - App side: send reads to the reader endpoint (e.g. a separate read-only DataSource or `@Transactional(readOnly = true)` routing), but remember **replica lag**, so read-your-own-writes needs the writer.
 
 ### Caching
-Cache hot reads (Redis/ElastiCache) with TTL plus invalidation on write. Cache-aside is the usual pattern. The MySQL query cache was removed in 8.0.
+Cache-aside means the app checks Redis, and on a miss loads from MySQL and stores the value with a TTL. Writes must delete or update that key, or the next read serves a stale row. The MySQL query cache was removed in 8.0, so this is your cache, not the engine's. Don't cache a response that differs per user unless the key includes the user.
 
 ---
 

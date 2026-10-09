@@ -13,6 +13,8 @@ LTS versions: **8, 11, 17, 21, 25** (Sept 2025). Spring Boot 3 requires **17+**.
 ## 1. Core concepts by version
 
 ### Java 8 (2014): the big one
+Lambdas are how you pass behaviour without an anonymous class. The compiler binds them once (`invokedynamic`), it doesn't allocate a new class per call. A stream does nothing until a terminal operation (`collect`, `toList`): `filter` and `map` only describe the pipeline, and it can be consumed once. `Optional` makes "no row" a type instead of a null you forget. `java.time` replaced `Date` because `Date` was mutable and mixed an instant with a calendar. `CompletableFuture` is a Promise: `thenApply` maps, `thenCompose` flattens, `allOf` waits for all.
+
 ```java
 // Lambdas + method references
 listings.sort(Comparator.comparing(Listing::price).thenComparing(Listing::title));
@@ -40,6 +42,8 @@ Duration timeout = Duration.ofSeconds(2);
 - `CompletableFuture` for async composition (`thenApply`, `thenCompose`, `allOf`). It's like Promise chains.
 
 ### Java 9–11
+`var` is still static. The compiler fills in the type, and you can't later assign a different one. `List.of` exists so a shared constant can't be mutated by accident. The JDK `HttpClient` covers simple calls that used to need a library, including async and HTTP/2. The module system (JPMS) hides JDK internals. Most Spring apps don't write modules, but they feel Java 11's other change: JAXB and the other Java EE APIs left the JDK and have to be real dependencies.
+
 ```java
 var listings = new ArrayList<Listing>();          // var: local type inference (10), still statically typed
 List<String> immutable = List.of("a", "b");       // immutable factories (9): List/Set/Map.of
@@ -54,6 +58,8 @@ HttpResponse<String> res = client.send(
 - 11 removed the Java EE modules (JAXB, JAX-WS) from the JDK, which broke old apps on migration.
 
 ### Java 12–17
+A record is a final class the compiler fills in: constructor, accessors, `equals`, `hashCode` and `toString`, all from the components. That's a TypeScript readonly type with value equality, and it's the wrong tool for a JPA entity because the fields are final and there's no no-arg constructor for Hibernate. A switch expression returns a value and does not fall through. A sealed interface lists the types that may implement it, so pattern matching can be exhaustive the way a discriminated union plus `never` is in TypeScript.
+
 ```java
 // Records (16): immutable data carriers: constructor, accessors, equals/hashCode/toString generated
 public record ListingResponse(Long id, String title, BigDecimal price) {
@@ -87,6 +93,8 @@ public record Pending() implements PaymentResult {}
 Also: helpful NullPointerExceptions (14) that name exactly which variable was null.
 
 ### Java 21 (LTS, 2023)
+A virtual thread is a JVM object, not an OS thread. A small pool of carrier threads runs them. When the virtual thread blocks in JDBC or HTTP, the JVM unmounts it and the carrier runs something else, which is why ordinary blocking Spring MVC can take a lot of concurrent calls without WebFlux.
+
 ```java
 // Pattern matching for switch + record patterns: exhaustive over a sealed type (no default needed)
 String message = switch (result) {
@@ -116,13 +124,13 @@ Java 25 is the new LTS (Sept 2025). It includes unnamed variables `_` (final in 
 ---
 
 ## 2. Core Java fundamentals they may probe
-- **`==` vs `equals`**: reference vs value. If you override `equals`, you **must** override `hashCode` (HashMap contract). Records do both for you.
-- **Immutability**: `final` fields, no setters, defensive copies, `List.copyOf`. String is immutable.
-- **Collections**: `ArrayList` (index O(1)), `LinkedList` (rarely better), `HashMap` (O(1) average, not ordered), `LinkedHashMap` (insertion order), `TreeMap` (sorted, O(log n)), `ConcurrentHashMap` (thread-safe without a global lock), `HashSet`.
-- **Exceptions**: checked (`IOException`: must declare or handle) vs unchecked (`RuntimeException`). Spring favours unchecked. Use try-with-resources for `AutoCloseable`.
-- **Generics**: type erasure (no `new T()`, no runtime generic type). Bounded wildcards: PECS, "producer extends, consumer super" (`List<? extends Number>` to read).
-- **Concurrency basics**: `synchronized`, `volatile` (visibility), `AtomicInteger`, `ExecutorService`, `CompletableFuture`, and immutability as the easiest thread safety.
-- **Memory**: heap (objects, GC: G1 is the default, ZGC for low latency) vs stack (frames, locals). `OutOfMemoryError` vs `StackOverflowError`.
+- **`==` vs `equals`**: `==` compares references (or primitive values). `equals` is the value comparison you define. `HashMap` buckets by `hashCode`, then checks `equals` inside the bucket. Two objects that are equal but hash differently will not be found. Records generate both from the components.
+- **Generics**: the compiler checks `List<String>`, then erases it to `List` in the bytecode. That's why you can't write `new T()` or ask a `List` at runtime what its element type was. PECS (`? extends` when you read, `? super` when you write) is how you accept a list of a subtype without breaking that check.
+- **Memory**: objects and arrays live on the heap. The GC (G1 by default, ZGC when you need short pauses) reclaims ones with no remaining references. Stack frames hold locals and die when the method returns. An infinite recursion is `StackOverflowError`. A list that grows without bound is `OutOfMemoryError`.
+- **Immutability**: `final` fields, no setters, defensive copies, `List.copyOf`. String is immutable. If nothing can change after construction, you can share the object across request threads without a lock. A getter that returns your internal `ArrayList` lets the caller mutate your state. Return `List.copyOf` or an unmodifiable view.
+- **Collections**: `ArrayList` is a growable array, so index access is O(1) and inserting in the middle shifts elements. `HashMap` buckets by `hashCode` and does not keep order. `ConcurrentHashMap` locks per bin rather than the whole map, which is the one to use for a cache on a singleton bean. `LinkedList` is almost never the win people expect.
+- **Exceptions**: a checked exception is part of the signature, so every caller must handle or declare it. Spring uses unchecked exceptions so a service method isn't a chain of `throws`. try-with-resources calls `close()` even when the body throws, which is how a JDBC connection or a stream doesn't leak.
+- **Concurrency basics**: `synchronized` makes one thread the owner of a block and flushes its writes. `volatile` only guarantees visibility of that one variable, not a larger update. `AtomicInteger` is a lock-free read-modify-write. An `ExecutorService` is a pool of platform threads. Immutability is the easiest thread safety, because there's nothing to publish halfway written.
 - **`BigDecimal` for money**, never `double`. Compare with `compareTo`, not `equals` (`2.0` vs `2.00`).
 
 ---

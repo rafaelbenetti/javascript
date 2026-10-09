@@ -10,6 +10,8 @@
 ## 1. Core concepts
 
 ### Resources and verbs
+The verb is a promise to caches, browsers and retries. GET is safe, so CloudFront may store it. PUT and DELETE are idempotent, so doing them twice leaves one result. POST is neither, which is why a timed-out "create payment" is dangerous without an idempotency key. Nest or Express will happily POST everything. The contract is what makes the React client predictable. Paths are nouns because the verb is already in the method.
+
 | Action | Request | Success status |
 |---|---|---|
 | List | `GET /api/v1/listings?city=malaga&page=0&size=20&sort=price,asc` | 200 |
@@ -25,12 +27,16 @@
 - Use nouns, not verbs (`/listings`, not `/getListings`). Lowercase kebab-case paths, consistent camelCase JSON.
 
 ### Status codes to know cold
+The status is the machine-readable result. The body is detail. 401 versus 403 tells the UI whether to send the user to login or to show "not allowed". 201 plus a `Location` header gives the new URL without the client parsing the body. 202 means "accepted, not finished", which is the right answer when the work goes to a queue.
+
 - **2xx**: 200 OK, 201 Created, 202 Accepted (async processing started), 204 No Content.
 - **3xx**: 301/308 permanent, 302/307 temporary, 304 Not Modified (ETag cache hit).
 - **4xx**: 400 Bad Request (malformed or validation), **401 Unauthorized (not authenticated)**, **403 Forbidden (authenticated but not allowed)**, 404 Not Found, 405 Method Not Allowed, 409 Conflict (version or duplicate), 412 Precondition Failed (If-Match), 415 Unsupported Media Type, 422 Unprocessable Content (semantically invalid; some teams use it for validation), 429 Too Many Requests (+ `Retry-After`).
 - **5xx**: 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout.
 
 ### Error format: ProblemDetail (RFC 9457, `application/problem+json`)
+One JSON shape means the React error handler is written once. Spring builds it in a `@RestControllerAdvice`. `traceId` should be the same id as the log line, so support can jump from the toast to the trace. A Nest exception filter that always returns `{ statusCode, message }` is the same idea with a different schema.
+
 ```json
 {
   "type": "https://api.example.com/problems/validation",
@@ -44,11 +50,15 @@
 ```
 
 ### Pagination
+Offset asks the database to count and skip, so page 5000 reads everything before it. Keyset says "rows after this sort key", which is an index range. Spring's `Pageable` is offset. A cursor is usually an opaque encoding of the last `(price, id)` so the client can't change the sort by editing the token.
+
 - **Offset** (`page`, `size`): simple, and you get page numbers. But it's slow on deep pages (`OFFSET 100000` scans) and unstable when data changes.
 - **Cursor/keyset** (`?after=eyJpZCI6MTIzfQ&limit=20`): `WHERE (price, id) > (?, ?) ORDER BY price, id LIMIT 20`. Fast and stable, ideal for infinite scroll. You lose "jump to page 37".
 - Return metadata: `{ "items": [...], "page": 0, "size": 20, "totalElements": 512 }` or `{ "items": [...], "nextCursor": "..." }`. Avoid expensive `COUNT(*)` on huge tables if it isn't needed.
 
 ### Idempotency keys for POST
+The server stores the key with the response, usually behind a unique constraint. The first request performs the charge and saves both. A retry with the same key returns the saved response and does not call the payment provider again. The key is unique per operation, not one key per user forever. It's the same idea as an idempotent Kafka consumer that upserts a deterministic document id.
+
 ```http
 POST /api/v1/payments
 Idempotency-Key: 6f1c2a9e-...
@@ -56,27 +66,37 @@ Idempotency-Key: 6f1c2a9e-...
 The server stores the key with the result, and a retry with the same key returns the stored result instead of charging twice. This is essential when clients and gateways retry on timeouts (the same pattern Stripe uses; you integrated Stripe on Benwer Cars).
 
 ### Concurrency: ETag / If-Match
+The ETag is a fingerprint of the version, often the JPA `@Version` or a hash of the body. `If-Match` makes the write conditional: the `UPDATE` includes that version, and 412 means someone else committed first. It's optimistic locking expressed as HTTP, so the client can reload instead of silently overwriting.
+
 `GET` returns `ETag: "v7"`. `PUT` sends `If-Match: "v7"`, and if someone changed the resource in between, the server returns 412. This maps naturally to a JPA `@Version`.
 
 ### Versioning
+A URL version is a Spring `@RequestMapping("/api/v1")` and a cache key you can see in the logs. Clients must ignore unknown JSON fields, which is Jackson's default, so adding an optional field is not a new version. Removing or renaming one is, and the old version stays until metrics show its traffic is gone. A header version is cleaner in the path and harder to curl.
+
 - URL (`/api/v1/...`): explicit and easy to route and cache. It's the most common choice.
 - Header or media type (`Accept: application/vnd.app.v2+json`): cleaner URLs, but harder to debug.
 - Rules: **additive changes are non-breaking** (new optional fields or endpoints). Removing or renaming fields or changing types is breaking, so you need a new version plus a deprecation period (`Deprecation`/`Sunset` headers). Clients must ignore unknown fields (Jackson: `FAIL_ON_UNKNOWN_PROPERTIES=false` is Boot's default).
 
 ### Caching
-`Cache-Control: public, max-age=60` for public GETs (CloudFront can cache them), `private, no-store` for user data. Use `ETag` + `If-None-Match` to get 304s. Never cache authenticated responses at a shared CDN without a cache key that includes auth.
+`Cache-Control` tells shared caches what they may store. `public, max-age=60` is a catalog page CloudFront can keep. `private, no-store` is a user's bookings. `ETag` plus `If-None-Match` lets the client ask "has this changed?" and get a 304 with an empty body when it hasn't. A shared CDN must not cache an authenticated response unless the cache key includes the identity, or one user receives another's payload.
 
 ### Contract-first with OpenAPI
+The spec is the agreement the React app compiles against. `springdoc-openapi` can generate it from the controllers, or you write it first and generate the server interfaces. `openapi-typescript` turns it into types, so a renamed field fails `tsc` in CI. That's what caught breaks on Benwer Cars, instead of a runtime error in the browser.
+
 - Write the spec first (or generate it from Spring with `springdoc-openapi`) and review it in the PR.
 - Generate clients (`openapi-generator`, `openapi-typescript`) so the React app gets typed calls. Breaking changes surface in CI.
 - Lint for breaking changes (`oasdiff`, Spectral).
 
 ### CORS and security basics
+The browser enforces CORS, not Spring. A cross-origin `POST` with `Content-Type: application/json` is not a "simple" request, so the browser first sends `OPTIONS` and only proceeds if the response allows that origin and method. `CorsConfigurationSource` is what answers it. `*` together with cookies is rejected by the browser, because any site could then make a credentialed call. Server-to-server calls never preflight. Authorisation is a separate step: a valid JWT does not mean this user owns listing 42.
+
 - CORS is a **browser** protection: the server declares allowed origins (`@CrossOrigin` or a global `CorsConfigurationSource` in Spring Security). Preflight `OPTIONS` happens for non-simple requests. Never use `*` with credentials.
 - Authenticate every request (bearer JWT or session cookie). Authorise **per resource**: check that the user owns listing 42 (BOLA/IDOR, the #1 API risk in the OWASP API Top 10).
 - Rate limiting (429), request size limits, input validation, no sensitive data in URLs (it ends up in logs).
 
 ### REST vs GraphQL vs gRPC vs async
+REST is the default because HTTP caches and every client already speak it. GraphQL pays off when one screen would otherwise call five endpoints and still get fields it doesn't render. The cost is per-field authorisation and a DataLoader so resolvers don't N+1. gRPC is a compact contract between services and a poor fit for browsers. If the user doesn't need the result in this HTTP call, publish to SQS or Kafka and return 202 so the request thread isn't waiting on the work.
+
 - **REST**: simple, cacheable, universal. The default for public and front-end APIs.
 - **GraphQL**: a client-shaped query, so no over or under-fetching across complex UIs. But caching is harder, N+1 needs DataLoader, and authorisation is per field.
 - **gRPC**: binary and fast, good for service-to-service, poor for browsers.

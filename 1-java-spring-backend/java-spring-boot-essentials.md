@@ -10,9 +10,7 @@
 ## 1. Core concepts
 
 ### IoC and DI
-- **IoC**: the container (`ApplicationContext`) creates objects (beans) and wires their dependencies, so your code doesn't call `new` for collaborators.
-- **DI styles**: constructor (preferred), setter (optional deps), field `@Autowired` (avoid: hides dependencies, can't be `final`, harder to unit test).
-- With a single constructor, `@Autowired` isn't needed.
+The `ApplicationContext` is a registry of objects it created itself. At startup it scans for stereotypes, instantiates each singleton in dependency order, and passes collaborators into the constructor, so your class never calls `new` on a repository. That split is why a unit test can pass a Mockito fake and production passes the real bean. NestJS does the same thing: the module builds providers and injects them. Constructor injection is the one to use. Setter injection is for optional dependencies, and field `@Autowired` hides them, blocks `final`, and is awkward to unit test. With a single constructor, `@Autowired` isn't needed.
 
 ```java
 @Service
@@ -28,6 +26,8 @@ public class ListingService {
 ```
 
 ### Stereotypes and config
+A stereotype puts a class into that registry. `@Service` and `@Component` are only names. `@Repository` also wraps the bean in a proxy that translates vendor SQL exceptions into Spring's `DataAccessException`, so a service can catch one type instead of MySQL's. `@RestController` adds `@ResponseBody`, which tells the `DispatcherServlet` to run the return value through Jackson instead of looking up a view.
+
 | Annotation | Meaning |
 |---|---|
 | `@Component` | Generic bean |
@@ -36,11 +36,13 @@ public class ListingService {
 | `@Controller` / `@RestController` | Web layer. `@RestController` = `@Controller` + `@ResponseBody` (returns JSON) |
 | `@Configuration` + `@Bean` | Explicit factory methods, for third-party objects you can't annotate |
 
-- **Scopes**: `singleton` (default, one per container, so it **must be stateless/thread-safe**), `prototype` (new instance on every injection/`getBean`), `request`, `session`, `application` (web).
+- **Scopes**: `singleton` (default, one per container, so it **must be stateless/thread-safe**), `prototype` (new instance on every injection/`getBean`), `request`, `session`, `application` (web). The singleton is cached in the context and shared by every request thread, which is why a mutable field races. NestJS providers are singletons by default for the same reason. A prototype is not cached: each injection point triggers a new `getBean`.
 - **`@SpringBootApplication`** = `@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan` (scans its own package and below).
-- **Auto-configuration**: conditional beans (`@ConditionalOnClass`, `@ConditionalOnMissingBean`). Add `spring-boot-starter-data-jpa` plus a driver and you get a `DataSource`, `EntityManagerFactory` and transaction manager. Your own bean overrides the default.
+- **Auto-configuration**: Boot ships configuration classes that only register a bean when a condition matches (`@ConditionalOnClass`, `@ConditionalOnMissingBean`). A starter is a POM that pulls those classes onto the classpath. Add `spring-boot-starter-data-jpa` plus a driver and you get a `DataSource`, `EntityManagerFactory` and transaction manager. Define your own bean of that type and the condition fails, so yours wins. It's the same idea as a Nest dynamic module that registers providers unless you already did.
 
 ### Configuration and profiles
+Boot loads `application.yml` into an `Environment` before creating beans, then binds a prefix onto a `@ConfigurationProperties` object, failing startup if a required value is missing. That is stricter than reading `process.env` in a few places and noticing the typo in production. A profile is an extra property layer (`application-prod.yml` or the document after `---`), activated with `SPRING_PROFILES_ACTIVE`. Higher layers win: command-line args, then env vars, then the profile file, then `application.yml`.
+
 ```yaml
 # application.yml
 spring:
@@ -65,6 +67,8 @@ public record PricingProps(URI baseUrl, Duration timeout) {}   // type-safe, val
 - Secrets come from env, Secrets Manager or SSM, never from the repo.
 
 ### A REST endpoint end to end
+Tomcat accepts the socket. The security filters run, then the `DispatcherServlet` matches method plus path to this handler. Jackson deserialises the body into the record, and `@Valid` runs Bean Validation before your method, so a negative price never reaches the service. The return value goes back through Jackson. Nest's `ValidationPipe` plus `@Body()` is the same gate in front of the controller method.
+
 ```java
 public record CreateListingRequest(
     @NotBlank @Size(max = 120) String title,
@@ -102,6 +106,8 @@ public class ListingController {
 - Needs `spring-boot-starter-validation`.
 
 ### Global error handling (Spring 6 `ProblemDetail`, RFC 9457)
+When a controller throws, the `DispatcherServlet` asks the `@RestControllerAdvice` for the most specific `@ExceptionHandler` instead of writing a container error page. ProblemDetail is a small standard JSON shape (`type`, `title`, `status`, `detail`) so the React app has one error parser. A Nest exception filter is that same single mapping point.
+
 ```java
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -132,9 +138,11 @@ public class ApiExceptionHandler {
 `spring.mvc.problemdetails.enabled=true` makes Spring's own exceptions use ProblemDetail too.
 
 ### Layering
-`Controller` (HTTP, validation, mapping) → `Service` (business rules, `@Transactional`) → `Repository` (`JpaRepository<Listing, Long>`). Controllers stay thin.
+`Controller` (HTTP, validation, mapping) → `Service` (business rules, `@Transactional`) → `Repository` (`JpaRepository<Listing, Long>`). Controllers stay thin. The cut exists so status codes don't leak into business rules, and so the service can be tested without a server. The transaction sits on the service because that method is the unit of "this use case commits or rolls back together". A Nest controller, service and repository are the same three layers.
 
 ### Spring Security (Boot 3 style)
+Security is a chain of servlet filters in front of the `DispatcherServlet`, not code inside the controller. For a JWT API, a filter reads `Authorization`, checks the signature against the issuer's JWKS, and stores an `Authentication` on the thread (`SecurityContextHolder`) for `@PreAuthorize` to read. CSRF can be turned off only because the browser is not attaching a cookie by itself. A Nest `AuthGuard` is the same gate, just inside the framework rather than in front of it.
+
 ```java
 @Configuration
 @EnableMethodSecurity
@@ -155,15 +163,18 @@ public class SecurityConfig {
 // method level: @PreAuthorize("hasRole('ADMIN') or #ownerId == authentication.name")
 ```
 - `WebSecurityConfigurerAdapter` is **gone** (removed in Spring Security 6). You declare a `SecurityFilterChain` bean.
-- Security is a chain of servlet filters that runs **before** the `DispatcherServlet`.
 
 ### Production bits
+Actuator endpoints are ordinary beans, split so a load balancer can ask "is the process up?" separately from "can it serve?". Virtual threads park when JDBC blocks and the carrier OS thread runs something else. They don't make CPU work faster, and the Hikari pool is still the ceiling because each query needs a real database connection.
+
 - **Actuator**: `/actuator/health` (liveness/readiness for ECS or ALB health checks), `/metrics`, `/prometheus`. Expose only what's needed.
 - **Calling other services**: `RestClient` (Spring 6.1+, synchronous, fluent) or `WebClient` (reactive). `RestTemplate` is in maintenance mode. Always set timeouts.
 - **Virtual threads (Java 21)**: `spring.threads.virtual.enabled=true` (Boot 3.2+) runs request handling on virtual threads. It helps blocking I/O-heavy services.
 - **Boot 3 baseline**: Java 17+, Jakarta EE 9+ (`javax.*` became `jakarta.*`), Micrometer observation and tracing. Spring Boot 4 / Framework 7 (Nov 2025) exist. Know that, but most codebases are on 3.x.
 
 ### NestJS ↔ Spring bridge (your strongest card)
+Read this left to right when the question is "you haven't lived in Spring". The pipeline is the same: module, injected provider, decorator, validation, one error filter, a guard. The annotations change.
+
 | NestJS | Spring Boot |
 |---|---|
 | `@Module` | `@Configuration` / component scan / auto-config |

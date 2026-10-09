@@ -10,6 +10,8 @@
 ## 1. Core concepts
 
 ### Entities and relations
+Hibernate reads these annotations into a metamodel: table, columns, foreign key. A lazy association is not loaded with the parent. Hibernate gives you a proxy (a subclass) whose target is empty until you touch it, and that first getter runs a SELECT through the open session. That's why fetch type matters, and why a `record` can't be an entity: Hibernate needs a no-arg constructor and a class it can subclass. A record is the right shape for the DTO you return instead.
+
 ```java
 @Entity
 @Table(name = "listing")
@@ -38,11 +40,15 @@ public class Listing {
 - Entities shouldn't be Java `record`s (they need mutability, a no-arg constructor and proxies). Records are perfect for DTOs and projections.
 
 ### Persistence context and entity states
+The persistence context is an identity map for one transaction. Load listing 42 twice and you get the same Java instance, which is how Hibernate avoids a second SELECT and how two copies of the row can't drift inside the unit of work. On flush it compares fields with the snapshot taken at load time and writes an UPDATE only for what changed, so `save()` is unnecessary while the entity is managed. When the transaction ends the context closes and the objects are detached: they still hold data, but they no longer track changes or lazy loads. A Node ORM session or a Drizzle transaction is the same boundary, just with less hidden snapshotting.
+
 - **Persistence context** = first-level cache plus change tracking, per transaction (per `EntityManager`).
 - States: **transient** (new, unknown) → **managed** (loaded or persisted, changes auto-flushed) → **detached** (context closed) → **removed**.
 - **Dirty checking**: changing a managed entity inside a transaction is enough. Hibernate issues the `UPDATE` on flush or commit, with no `save()` needed.
 
 ### Spring Data JPA
+You write an interface and no implementation. At startup Spring Data parses method names (`findByOwnerIdAndPriceLessThan`) into a query and creates a JDK proxy that runs it. `@Query` skips the parser and uses your JPQL. Derived methods are the equivalent of a thin query-builder call in Drizzle, with the method name as the query.
+
 ```java
 public interface ListingRepository extends JpaRepository<Listing, Long> {
     List<Listing> findByOwnerIdAndPriceLessThan(Long ownerId, BigDecimal max);   // derived query
@@ -59,6 +65,8 @@ public record ListingSummary(Long id, String title, BigDecimal price) {}
 ```
 
 ### The N+1 problem
+The first query loaded listings without the owner columns. Each `getOwner()` initialises that listing's proxy with its own `SELECT ... WHERE id = ?`, because the persistence context can't invent a row it never fetched. You see it as the same statement repeated in the SQL log. ORMs in Node, including Drizzle if you query relations in a loop, do the same thing.
+
 ```java
 List<Listing> listings = repo.findAll();          // 1 query
 listings.forEach(l -> l.getOwner().getName());    // +N queries, one per listing (lazy load)
@@ -71,9 +79,11 @@ listings.forEach(l -> l.getOwner().getName());    // +N queries, one per listing
 **Caveat:** `JOIN FETCH` of a collection combined with pagination makes Hibernate paginate **in memory** (warning HHH90003004 / HHH000104). Paginate the IDs first, then fetch by IDs, or use batch fetching. Fetching two `List` collections at once throws `MultipleBagFetchException`.
 
 ### `LazyInitializationException`
-Accessing a lazy relation after the transaction or session has closed (e.g. in the controller or during Jackson serialisation). **Fix:** fetch what you need in the service, inside the transaction, and map to a DTO there. `spring.jpa.open-in-view` is **true by default** (Boot logs a warning). It hides the problem by keeping the session open during view rendering, which causes surprise queries and holds DB connections longer. Many teams set it to `false`.
+The lazy proxy remembers the session that loaded it. After commit that session is closed, so the proxy has nowhere to send the SELECT and throws. It usually shows up when Jackson serialises an entity in the controller and touches a relation you didn't fetch. **Fix:** fetch what you need in the service, inside the transaction, and map to a DTO there. `spring.jpa.open-in-view` is **true by default** (Boot logs a warning). It binds the session for the whole request, which hides the exception by letting Jackson run queries during rendering, and it holds a connection until the response is done. Many teams set it to `false`.
 
 ### `@Transactional`
+Boot proxies the service with a subclass (CGLIB). The proxy starts a transaction, calls your method, then commits, or rolls back. A call written as `this.other()`, or a `private` method, hits the real object and never enters the proxy, so no transaction starts. Nest interceptors have the same hole: they only see calls that come in from outside the class.
+
 ```java
 @Service
 public class BookingService {
@@ -98,11 +108,13 @@ Rules to know cold:
 - Spring Data repository methods are already transactional individually (reads are `readOnly`).
 
 ### Concurrency control
+Optimistic locking doesn't block the other user. The version from when you loaded the row is added to the `UPDATE`'s `WHERE`, and if someone else already incremented it, zero rows change and Hibernate throws. Pessimistic locking takes the InnoDB row lock up front so the second transaction waits. Use optimistic unless the row is hot, like a stock counter.
+
 - **Optimistic** (`@Version`): `UPDATE ... WHERE id=? AND version=?`. On conflict you get `OptimisticLockException` → retry or return 409. Best for low-contention web apps.
 - **Pessimistic**: `@Lock(LockModeType.PESSIMISTIC_WRITE)` → `SELECT ... FOR UPDATE`. For hot rows such as stock counters.
 
 ### Schema migrations
-Use Flyway (`db/migration/V1__init.sql`) or Liquibase. Never use `ddl-auto=update` in production. Use `validate` or `none`.
+Flyway (or Liquibase) stores applied versions in a history table and runs any new `V*.sql` in order at startup, so every environment applies the same steps. `ddl-auto=update` lets Hibernate invent DDL from the entities, which can widen or drop a column you didn't mean to ship. `validate` only checks that the schema matches the metamodel and refuses to boot if it doesn't. In production the scripts live in `db/migration/` and `ddl-auto` stays `validate` or `none`.
 
 ---
 
