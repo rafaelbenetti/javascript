@@ -22,11 +22,16 @@ Files that came from the original notes were corrected in place: changes are mar
 - [react.md](2-react-frontend/react.md): Corrected former REACT.md: 40 React Q&A with fixes (props re-render, Pages vs App Router) plus React 19, Compiler and the OneHome perf story
 - [typescript.md](2-react-frontend/typescript.md): Corrected former TYPESCRIPT.md: 20 TS Q&A with fixes (never exhaustiveness, real template literal types) plus React + TS
 
+## 3. Cloud & DevOps ([folder](3-cloud-devops/))
+- [aws-fullstack-services.md](3-cloud-devops/aws-fullstack-services.md): Each JD AWS service in depth, GCP↔AWS bridge table, reference architecture, model answers
+- [aws.md](3-cloud-devops/aws.md): Reworked former AWS.md: retargeted from Vanguard to the Applica stack (CloudFront, S3, Beanstalk, ECS/ECR, Lambda, SQS/SNS, Aurora) with honest GCP bridge
+- [ci-cd.md](3-cloud-devops/ci-cd.md): Corrected former CI-CD.md: broken image fixed, Jenkins→ECR→ECS pipeline, quality gates, AI release-agent story, DORA
+- [docker-jenkins-pipeline.md](3-cloud-devops/docker-jenkins-pipeline.md): Multi-stage Spring Boot and React Dockerfiles, declarative Jenkinsfile (tests, gates, ECR, ECS, approval), rollback
+- [observability-newrelic-splunk.md](3-cloud-devops/observability-newrelic-splunk.md): Logs/metrics/traces, SLOs, New Relic APM and NRQL, Splunk SPL, CloudWatch, alerting, on-call flow
+
 ## Not yet reorganised
 - [ANGULAR.md](ANGULAR.md)
 - [ARCHITECTURE-PATTERNS.md](ARCHITECTURE-PATTERNS.md)
-- [AWS.md](AWS.md)
-- [CI-CD.md](CI-CD.md)
 - [JAVASCRIPT-ECMAScript.md](JAVASCRIPT-ECMAScript.md)
 - [JAVASCRIPT-QUESTIONS.md](JAVASCRIPT-QUESTIONS.md)
 - [JAVASCRIPT.md](JAVASCRIPT.md)
