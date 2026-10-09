@@ -1,5 +1,19 @@
 # 🟦 TypeScript Interview Q&A (Extended)
 
+> Group 2 · Corrected version of the former `TYPESCRIPT.md` · Priority HIGH
+> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+
+## What was fixed (changelog)
+1. **Q5 discriminated unions**: the example's `default` branch defeated exhaustiveness, despite the claim that it "guarantees future states can't be forgotten". Added a `never` check.
+2. **Q19 template literal types**: the example had no template literal type. Replaced it with a real one.
+3. **Q4 type guard**: the guard only checked `'id' in x`, so it wasn't really checking the shape. Tightened it.
+4. **Context lines**: many said "Angular". Added React equivalents (the role is React).
+5. **➕ Added** Q21–Q27: React + TS (props, children, events, generic components, hooks, `useReducer` actions, `ComponentProps`), the 30-second summary and traps.
+
+## ➕ Say it in 30 seconds
+"I use TypeScript in strict mode to make invalid states unrepresentable. Discriminated unions model UI state like idle, loading, success and error, with a `never` check so the compiler flags any case I forget. Generics make hooks and components reusable, and utility types like `Pick`, `Omit` and `Partial` derive shapes instead of duplicating them. `unknown` instead of `any` at the boundaries, plus runtime validation with zod, because types disappear at runtime. On Benwer Cars I generated typed clients from the backend's OpenAPI spec, so API changes broke the build instead of production."
+
+
 ---
 
 ## 1) Interface vs Type — when to use each?
@@ -66,16 +80,19 @@ Use `typeof`, `instanceof`, `in`, or custom type guards.
 ```ts
 type Rollover = { id:number; name:string };
 function isRollover(x: unknown): x is Rollover {
-  return typeof x === 'object' && !!x && 'id' in x;
+  // ✏️ FIXED: check the types too, not just that a key exists
+  return typeof x === 'object' && x !== null
+    && 'id' in x && typeof x.id === 'number'
+    && 'name' in x && typeof x.name === 'string';
 }
 ```
 
-**Takeaway:** Narrowing ensures type safety when working with flexible data.
+**Takeaway:** Narrowing ensures type safety when working with flexible data. **➕** A type guard is a promise you make to the compiler, so a wrong guard is a lie that hides bugs. For external data, prefer a schema (zod, Q13).
 
 ---
 
 ## 5) Discriminated unions + exhaustiveness
-**Context:** Perfect for modeling UI state in Angular (loading, success, error).
+**Context:** Perfect for modeling UI state (loading, success, error) in React or Angular.
 
 **Answer:**  
 Use a literal discriminator and `switch` statements to enforce all cases are handled.
@@ -91,12 +108,17 @@ function render(s: Load) {
   switch (s.kind) {
     case 'success': return s.data.length;
     case 'error': return s.msg;
-    default: return '...';
+    case 'idle':
+    case 'loading': return '...';
+    default: {
+      const _exhaustive: never = s;   // ✏️ compile error if a new kind is added and not handled
+      return _exhaustive;
+    }
   }
 }
 ```
 
-**Takeaway:** Guarantees future states can’t be forgotten.
+**✏️ FIXED Takeaway:** a `switch` alone doesn't guarantee anything. With a catch-all `default` returning a value, a new variant compiles silently. Exhaustiveness comes from assigning the leftover value to `never` (or an `assertNever(x: never)` helper), or from a function return type plus `noImplicitReturns`.
 
 ---
 
@@ -295,8 +317,18 @@ Enable `"strict": true` plus:
 
 **Answer:**  
 ```ts
-const routes = { list:'/rollovers', detail:'/rollovers/:id' } as const;
-type RouteKey = keyof typeof routes; // 'list' | 'detail'
+// ✏️ FIXED: the original example (keyof typeof routes) used no template literal type.
+type Entity = 'listing' | 'user';
+type Action = 'created' | 'deleted';
+type EventName = `${Entity}:${Action}`;          // 'listing:created' | 'listing:deleted' | 'user:created' | 'user:deleted'
+
+type Handler = `on${Capitalize<'click' | 'focus'>}`; // 'onClick' | 'onFocus'
+
+// Extracting params from a route string
+type Params<S extends string> =
+  S extends `${string}:${infer P}/${infer Rest}` ? P | Params<Rest>
+  : S extends `${string}:${infer P}` ? P : never;
+type P = Params<'/listings/:listingId/photos/:photoId'>; // 'listingId' | 'photoId'
 ```
 
 **Takeaway:** Provides compile-time guarantees for string-based APIs.
@@ -315,5 +347,90 @@ enum StatusEnum { Pending='Pending', Completed='Completed' }
 ```
 
 **Takeaway:** Literal unions first, Enums only when runtime behavior is needed.
+**➕** Numeric enums accept any number (`const s: E = 42` compiles), and `const enum` breaks with isolated-module builds (Babel, esbuild, SWC). TS 5.8's `--erasableSyntaxOnly` (for Node's native type stripping) disallows enums entirely, another reason to prefer unions or `as const` objects.
+
+---
+
+## ➕ 21) Typing React component props
+
+```tsx
+type ButtonProps = {
+  variant?: 'primary' | 'secondary';
+  onClick?: () => void;
+  children: React.ReactNode;
+} & React.ComponentProps<'button'>;   // inherit all native button props (disabled, type, aria-*)
+
+export function Button({ variant = 'primary', children, ...rest }: ButtonProps) {
+  return <button className={`btn btn--${variant}`} {...rest}>{children}</button>;
+}
+```
+- Prefer typing props directly over `React.FC` (FC no longer adds implicit `children`, and it's mostly a style choice now).
+- React 19: `ref` is a normal prop, available via `React.ComponentProps<'input'>`, so `forwardRef` isn't needed.
+
+## ➕ 22) Event and ref types
+
+```tsx
+const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value);
+const onSubmit = (e: React.FormEvent<HTMLFormElement>) => { e.preventDefault(); };
+const inputRef = useRef<HTMLInputElement>(null);
+```
+
+## ➕ 23) Typing `useState` and `useReducer`
+
+```tsx
+const [user, setUser] = useState<User | null>(null);   // explicit when the initial value is null
+
+type Action =
+  | { type: 'added'; item: CartItem }
+  | { type: 'removed'; id: string }
+  | { type: 'cleared' };
+function cartReducer(state: CartItem[], action: Action): CartItem[] {
+  switch (action.type) {
+    case 'added': return [...state, action.item];
+    case 'removed': return state.filter(i => i.id !== action.id);
+    case 'cleared': return [];
+  }
+}
+```
+
+## ➕ 24) Generic components
+
+```tsx
+type ListProps<T> = { items: T[]; getKey: (item: T) => string; render: (item: T) => React.ReactNode };
+function List<T>({ items, getKey, render }: ListProps<T>) {
+  return <ul>{items.map(i => <li key={getKey(i)}>{render(i)}</li>)}</ul>;
+}
+<List items={listings} getKey={l => String(l.id)} render={l => l.title} />  // T inferred as Listing
+```
+
+## ➕ 25) Typing a custom hook
+
+```tsx
+function useFetch<T>(url: string) {
+  const [state, setState] = useState<Load<T>>({ kind: 'idle' });
+  // ...
+  return state;   // Load<T> = discriminated union from Q5, made generic
+}
+```
+
+## ➕ 26) Types that come from the API
+
+- Generate types or clients from **OpenAPI** (`openapi-typescript`, `openapi-generator`) so the frontend and the Spring/Nest backend share one contract. I did this on Benwer Cars.
+- Still validate untrusted input at runtime (zod) where it matters.
+
+## ➕ 27) `type` vs `interface` in React code?
+Either works for props. Many teams use `type` for props and unions, and `interface` for extendable public contracts. Consistency matters more than the choice.
+
+---
+
+## ➕ Traps and gotchas
+- `as` casts silence the compiler and don't check anything at runtime. `as unknown as X` is a red flag.
+- The non-null assertion `!` hides real null bugs.
+- `any` spreads: one `any` return can untype a whole call chain. Use `unknown` and narrow.
+- `object` vs `{}` vs `Record<string, unknown>`: `{}` means "any non-nullish value", not "empty object".
+- Optional vs `undefined`: `{ a?: string }` differs from `{ a: string | undefined }` under `exactOptionalPropertyTypes`.
+- Types are erased at runtime, so you can't `instanceof` an interface.
+- `enum` numeric reverse mapping surprises. Prefer unions.
+- Claiming "TypeScript prevents runtime errors" overstates it. It catches a class of errors at compile time.
 
 ---

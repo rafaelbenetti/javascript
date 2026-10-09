@@ -13,6 +13,15 @@ Files that came from the original notes were corrected in place: changes are mar
 - [spring-boot-testing.md](1-java-spring-backend/spring-boot-testing.md): JUnit 5, Mockito, @WebMvcTest, @DataJpaTest, Testcontainers with @ServiceConnection, JaCoCo gate
 - [spring-boot.md](1-java-spring-backend/spring-boot.md): Corrected former SPRING-BOOT.md: 20 Spring Q&A with fixes (scopes, Security 6, transactions, ProblemDetail) plus 8 added questions
 
+## 2. React frontend ([folder](2-react-frontend/))
+- [accessibility-responsive.md](2-react-frontend/accessibility-responsive.md): WCAG 2.2 AA, semantic HTML, ARIA rules, focus management, mobile-first CSS, container queries, responsive images, Core Web Vitals
+- [frontend-build-tooling-webpack-eslint.md](2-react-frontend/frontend-build-tooling-webpack-eslint.md): Webpack loaders/plugins, code splitting, tree shaking, caching, Vite, ESLint flat config, npm/semver/npm ci
+- [headless-cms-react.md](2-react-frontend/headless-cms-react.md): Headless CMS with React: content modelling, typed fetching, component map, caching and webhooks, preview, XSS
+- [pre-processors.md](2-react-frontend/pre-processors.md): Corrected former PRE-PROCESSORS.md: SCSS Q&A updated to modern Sass (@use, math.div, sass:color) plus CSS Modules and BEM
+- [react-testing-jest-rtl.md](2-react-frontend/react-testing-jest-rtl.md): Jest + RTL: query priority, userEvent, findBy/waitFor, MSW, providers, coverage gate, flaky-test tips
+- [react.md](2-react-frontend/react.md): Corrected former REACT.md: 40 React Q&A with fixes (props re-render, Pages vs App Router) plus React 19, Compiler and the OneHome perf story
+- [typescript.md](2-react-frontend/typescript.md): Corrected former TYPESCRIPT.md: 20 TS Q&A with fixes (never exhaustiveness, real template literal types) plus React + TS
+
 ## Not yet reorganised
 - [ANGULAR.md](ANGULAR.md)
 - [ARCHITECTURE-PATTERNS.md](ARCHITECTURE-PATTERNS.md)
@@ -27,11 +36,8 @@ Files that came from the original notes were corrected in place: changes are mar
 - [NODEJS.md](NODEJS.md)
 - [OVERVIEW.md](OVERVIEW.md)
 - [OWASP.md](OWASP.md)
-- [PRE-PROCESSORS.md](PRE-PROCESSORS.md)
-- [REACT.md](REACT.md)
 - [RxJS.md](RxJS.md)
 - [STORAGE-SECURITY.md](STORAGE-SECURITY.md)
-- [TYPESCRIPT.md](TYPESCRIPT.md)
 
 ## Code snippets
 - [src/](src/): small runnable ES5/ES2015 snippets (hoisting, scope, closures, `this`, prototypes)
