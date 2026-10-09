@@ -29,20 +29,23 @@ Files that came from the original notes were corrected in place: changes are mar
 - [docker-jenkins-pipeline.md](3-cloud-devops/docker-jenkins-pipeline.md): Multi-stage Spring Boot and React Dockerfiles, declarative Jenkinsfile (tests, gates, ECR, ECS, approval), rollback
 - [observability-newrelic-splunk.md](3-cloud-devops/observability-newrelic-splunk.md): Logs/metrics/traces, SLOs, New Relic APM and NRQL, Splunk SPL, CloudWatch, alerting, on-call flow
 
+## 4. Architecture & security ([folder](4-architecture-security/))
+- [architecture-patterns.md](4-architecture-security/architecture-patterns.md): Corrected former ARCHITECTURE-PATTERNS.md: examples moved to React/Spring/ECS/SQS/Aurora, Java outbox and hexagonal, resilience patterns, Favorites CQRS example
+- [jwt.md](4-architecture-security/jwt.md): Corrected former JWT.md: fixed Angular functional interceptor, 401 + pinned algorithms in Express, React and Spring examples
+- [owasp.md](4-architecture-security/owasp.md): Corrected former OWASP.md: updated to OWASP Top 10:2025, real SQL-injection example and fixes, Spring/React angle
+- [security-data-privacy.md](4-architecture-security/security-data-privacy.md): Secure SDLC, React + Spring security checklist, GDPR essentials, privacy engineering, breach and erasure answers
+- [storage-security.md](4-architecture-security/storage-security.md): Corrected former STORAGE-SECURITY.md: HttpOnly cookies are server-only, cookie attribute table, OIDC + PKCE, RBAC + ownership
+
 ## Not yet reorganised
 - [ANGULAR.md](ANGULAR.md)
-- [ARCHITECTURE-PATTERNS.md](ARCHITECTURE-PATTERNS.md)
 - [JAVASCRIPT-ECMAScript.md](JAVASCRIPT-ECMAScript.md)
 - [JAVASCRIPT-QUESTIONS.md](JAVASCRIPT-QUESTIONS.md)
 - [JAVASCRIPT.md](JAVASCRIPT.md)
-- [JWT.md](JWT.md)
 - [LEADERSHIP.md](LEADERSHIP.md)
 - [NEXTJS.md](NEXTJS.md)
 - [NODEJS.md](NODEJS.md)
 - [OVERVIEW.md](OVERVIEW.md)
-- [OWASP.md](OWASP.md)
 - [RxJS.md](RxJS.md)
-- [STORAGE-SECURITY.md](STORAGE-SECURITY.md)
 
 ## Code snippets
 - [src/](src/): small runnable ES5/ES2015 snippets (hoisting, scope, closures, `this`, prototypes)
