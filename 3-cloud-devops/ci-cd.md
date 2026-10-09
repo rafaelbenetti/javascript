@@ -1,25 +1,16 @@
 # ⚙️ CI/CD Crash Review
 
-> Group 3 · Corrected version of the former `CI-CD.md` · Priority HIGH
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 3 · Priority HIGH
 > Hands-on pipeline file: `docker-jenkins-pipeline.md`
 
-## What was fixed (changelog)
-1. **Broken image**: `![CI/CD Pipeline](CI-CD-Pipeline.png)` pointed to a file that never existed in the repo. Replaced it with a text diagram.
-2. **Vanguard context** lines (Angular, Node BFF, EKS/Helm) kept but marked. Added the **Applica stack**: React + Spring Boot, **Jenkins**, Docker, **ECR/ECS**, S3/CloudFront.
-3. **Example pipeline**: was GitHub Actions + Helm/EKS. Added the **Jenkins → ECR → ECS** version (the JD's tools).
-4. **➕ Added**: coverage and quality gates, the AI release-agent story, trunk-based vs GitFlow, DORA metrics, 30-second summary and traps.
-
-## ➕ Say it in 30 seconds
-"CI means every change is built and tested automatically on every push: lint, type-check, unit and integration tests, a coverage gate, security scans. CD means the same immutable artifact (a Docker image tagged with the commit) is promoted through environments automatically, with production gated by approval (continuous delivery) or fully automatic (continuous deployment). Deploys are safe through rolling or blue/green releases, health checks, feature flags and fast rollback. I've built and run Jenkins pipelines since CWI. At EPAM we have an 80% coverage gate, and I built AI agent skills that automate much of release prep: Veracode remediation, Jira tickets and PRs, UAT deploys and investigation in GCP and Mixpanel."
+## Say it in 1 minute
+"CI means every change is built and tested on its own, on every push: lint, type-check, unit and integration tests, a coverage gate, and security scans. CD means that same immutable artifact, a Docker image tagged with the commit, is what moves through the environments. Production is either gated by an approval, which is continuous delivery, or fully automatic, which is continuous deployment. The deploy itself is rolling or blue-green, with health checks, feature flags, and a rollback that does not need a fresh commit. I have built and run Jenkins pipelines since CWI. At EPAM we hold an 80 percent coverage gate, and I built AI agent skills that take a lot of the release prep off people's plates: Veracode remediation, Jira tickets and pull requests, UAT deploys, and investigation in GCP and Mixpanel. The pipeline is still what decides whether the change ships."
 
 ```text
-✏️ (replaces the missing image)
 commit → [CI] lint · tsc · unit tests · coverage gate · build · SAST/deps scan · docker build → push to ECR
        → [CD] deploy DEV → integration/contract tests → deploy UAT/STAGING → smoke + e2e
        → (manual approval = continuous delivery) → deploy PROD (rolling/blue-green) → health checks → monitor → rollback if needed
 ```
-
 
 
 ## 🔹 CI (Continuous Integration)
@@ -37,7 +28,7 @@ commit → [CI] lint · tsc · unit tests · coverage gate · build · SAST/deps
 
 👉 Vanguard context: Angular (frontend build), Node BFF (unit + API tests), Java (microservices) — all tested automatically.
 
-👉 **➕ Applica context:** React (ESLint, `tsc`, Jest + RTL with coverage threshold, Webpack build) + Spring Boot (Maven/Gradle, JUnit/Mockito, Testcontainers ITs, JaCoCo gate) → Docker images → ECR.
+👉 **Applica context:** React (ESLint, `tsc`, Jest + RTL with coverage threshold, Webpack build) + Spring Boot (Maven/Gradle, JUnit/Mockito, Testcontainers ITs, JaCoCo gate) → Docker images → ECR.
 
 ---
 
@@ -53,14 +44,14 @@ commit → [CI] lint · tsc · unit tests · coverage gate · build · SAST/deps
 2. Run automated tests.
 3. Deploy to:
    - **AWS EKS (Kubernetes)** for microservices. *(Vanguard)*
-   - **➕ AWS ECS (Fargate) / Elastic Beanstalk** for Spring Boot services. *(Applica JD)*
+   - **AWS ECS (Fargate) / Elastic Beanstalk** for Spring Boot services. *(Applica JD)*
    - **AWS Lambda (Serverless)** for event-driven APIs.
-   - **S3 + CloudFront** for ✏️ the React (or Angular) frontend.
+   - **S3 + CloudFront** for  the React (or Angular) frontend.
 4. Post-deploy tests (smoke, health checks).
 5. Monitoring hooks (CloudWatch, Splunk alerts).
 
 👉 Vanguard context: modernization is **cloud-native AWS + serverless** → expect **IaC (Infrastructure as Code)** via **Terraform or AWS CDK**, automated pipelines via **AWS CodePipeline or Jenkins**.
-👉 **➕ Applica context:** the JD names **Jenkins** and **Docker** explicitly, so speak in Jenkinsfile terms (stages, agents, credentials, quality gates, `input` approval).
+👉 **Applica context:** the JD names **Jenkins** and **Docker** explicitly, so speak in Jenkinsfile terms (stages, agents, credentials, quality gates, `input` approval).
 
 ---
 
@@ -81,7 +72,7 @@ commit → [CI] lint · tsc · unit tests · coverage gate · build · SAST/deps
 **Step 5:** Run smoke tests (e.g., `cucumber-js --tags @smoke`).  
 **Step 6:** Notify Slack/MS Teams → Ops sign-off for prod (if Delivery model).  
 
-### ➕ ✏️ Same pipeline in the JD's tools (Jenkins → ECR → ECS)
+### ️ Same pipeline in the JD's tools (Jenkins → ECR → ECS)
 **Step 1:** PR merged → Jenkins multibranch pipeline triggers (webhook).  
 **Step 2:** Parallel stages: `npm ci && npm run lint && npx tsc --noEmit && npm test -- --coverage` (Jest `coverageThreshold` = gate) | `./mvnw verify` (JUnit, Testcontainers ITs, JaCoCo check).  
 **Step 3:** Static analysis + dependency scan (Sonar quality gate, Veracode/Snyk/OWASP Dependency-Check).  
@@ -226,7 +217,7 @@ CI is about **code integration**, CD is about **code delivery**.
 
 ---
 
-## ➕ Extra questions
+## Extra questions
 
 ### Q: What quality gates do you put in a pipeline?
 Lint + type-check, unit tests, **coverage threshold** (at EPAM, 80%, enforced in CI so PRs below it fail), integration and contract tests, static analysis (Sonar), dependency and container scanning (Veracode/Snyk/ECR scan), bundle-size budget for the front end, and a manual approval before prod when required.
@@ -245,7 +236,7 @@ Versioned migrations (Flyway/Liquibase) run as a pipeline step or on app start, 
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - Rebuilding the artifact per environment means "tested" isn't what you ship. Build once, promote.
 - `latest` image tags make rollbacks and audits impossible. Tag with the git SHA.
 - Flaky tests that everyone re-runs erode trust. Quarantine and fix them.

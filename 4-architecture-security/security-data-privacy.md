@@ -3,8 +3,8 @@
 > Group 4 · Priority LOW–MEDIUM · JD: "security and data privacy" · Status: new file
 > Related: `owasp.md` (2025), `jwt.md`, `storage-security.md`
 
-## Say it in 30 seconds
-"I treat security as part of the definition of done. Authenticate with a proven identity provider and authorise every request server-side, including ownership. Validate input and parameterise queries. Use React's escaping plus a Content Security Policy against XSS. TLS everywhere, encryption at rest, and secrets in a secrets manager, never in code. Dependency and code scanning in the pipeline (at EPAM I've worked on Veracode remediation). For privacy under GDPR: collect the minimum personal data, know where it flows, keep it out of logs and analytics, honour deletion and access requests, and set retention. For a learning or media product with users across regions, that also means consent for tracking and care with children's data if minors are users."
+## Say it in 1 minute
+"I treat security as part of done. Authentication uses a proven identity provider, and every request is authorised on the server, including ownership. Input is validated, queries are parameterised, and XSS is handled by React escaping plus a Content Security Policy. TLS is everywhere, data is encrypted at rest, and secrets live in a secrets manager. The pipeline scans dependencies and code. At EPAM that is Veracode, and I have remediated findings and built agent skills that help with triage. GDPR is the same discipline for personal data: collect the minimum, know where it flows, keep it out of logs and analytics, honour deletion and access, and set retention. A learning or media product across regions also needs consent before tracking, and extra care if minors can be users."
 
 ---
 

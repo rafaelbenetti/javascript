@@ -1,52 +1,44 @@
 # 🚀 JWT Quick Review (Cheat Sheet)
 
-> Group 4 · Corrected version of the former `JWT.md` · Priority MEDIUM
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 4 · Priority MEDIUM
 
-## What was fixed (changelog)
-1. **✏️ Angular interceptor bug**: a **class** `HttpInterceptor` was registered with `withInterceptors([...])`, which only accepts **functional** interceptors (`HttpInterceptorFn`). Now shows the functional version, plus the correct class-based registration (`withInterceptorsFromDi()` + `HTTP_INTERCEPTORS`).
-2. **✏️ Contradiction**: the interceptor read the token from `sessionStorage` while the file says to avoid web storage. It now uses an in-memory token service, with the cookie option explained.
-3. **✏️ Express middleware**: invalid or expired token now returns **401** (not 403), and `jwt.verify` **pins algorithms** and checks issuer/audience (prevents `alg: none` and algorithm-confusion attacks). The secret comes from env.
-4. **✏️ Header parsing** made robust (`Bearer` scheme check).
-5. **➕ Added**: React fetch example, Spring resource-server equivalent, JWS vs JWE, `aud`/`iss` validation, refresh-token rotation, 30-second summary and traps.
-
-## ➕ Say it in 30 seconds
-"A JWT is a signed, base64url-encoded token (header, payload, signature) carrying claims like `sub`, `roles`, `exp`, `iss` and `aud`. It's signed, not encrypted, so anyone can read it and nobody should put secrets in it. The API verifies the signature with the issuer's public key (JWKS), pins the algorithm, and checks expiry, issuer and audience, which gives stateless auth across services. Access tokens are short-lived, and refresh tokens are rotated and kept in HttpOnly cookies. In the browser, the safest options are an HttpOnly cookie (plus CSRF protection) or memory, not localStorage. In Spring that's the OAuth2 resource server. In React, the token is attached by a fetch wrapper or a BFF."
+## Say it in 1 minute
+"A JWT is three base64url parts: header, payload, and signature. It is signed, not encrypted, so anyone can read the claims, and a secret never belongs in the payload. I expect sub, roles, exp, iss, and aud. The API checks the signature with the issuer public keys from JWKS, pins the algorithms, and checks expiry, issuer, and audience. That is what makes the authentication stateless across services. Access tokens stay short-lived. Refresh tokens rotate and live in an HttpOnly cookie. In the browser the safe places are that cookie, with CSRF protection, or memory. localStorage is how XSS becomes a stolen session. In Spring I use the OAuth2 resource server. In React a fetch wrapper attaches the token, or a backend-for-frontend holds it so the browser never sees it."
 
 
 - **JWT** = JSON Web Token → `header.payload.signature`
-- **Used for:** Stateless auth (✏️ React/Angular → BFF → APIs (Spring/Node) → AWS)
+- **Used for:** Stateless auth ( React/Angular → BFF → APIs (Spring/Node) → AWS)
 - **Flow:** Login → JWT issued → Frontend stores → Sends `Authorization: Bearer <token>` → BFF validates → Microservices trust claims
 - **Best Practices:**
   - Short-lived Access Tokens + Refresh Tokens
   - Store in HttpOnly secure cookie (not localStorage)
-  - Always check `exp`, verify signature ➕ (and `iss`, `aud`; pin the allowed `alg`)
+  - Always check `exp`, verify signature  (and `iss`, `aud`; pin the allowed `alg`)
   - JWT ≠ encrypted, only signed (payload is visible)
 - **Interview Keywords:** Stateless, scalability, integrity, OAuth2/OIDC, Cognito, revocation, refresh token
 
 ---
 # 🔑 JWT Token Basics
 
--   **JWT** = JSON Web Token.
+- **JWT** = JSON Web Token.
 
 -   It's a **string** (three parts separated by `.`):
 
         header.payload.signature
 
-    -   **Header**: metadata (`alg`, `typ`).
-    -   **Payload**: claims (e.g., `sub`, `roles`, `exp`).
-    -   **Signature**: HMAC or RSA ➕/ECDSA signature to ensure integrity. ➕ (Signed JWT = **JWS**. Encrypted JWT = **JWE**, rarely needed.)
+    - **Header**: metadata (`alg`, `typ`).
+    - **Payload**: claims (e.g., `sub`, `roles`, `exp`).
+    - **Signature**: HMAC or RSA /ECDSA signature to ensure integrity.  (Signed JWT = **JWS**. Encrypted JWT = **JWE**, rarely needed.)
 
 ------------------------------------------------------------------------
 
 # 🔄 JWT Authentication Flow
 
-➕ Diagram (moved from the old `src/assets/`): ![JWT authorization](assets/jwt-authorization.png)
+![JWT authorization](assets/jwt-authorization.png)
 
 ### 1. **Login / Auth**
 
 -   User logs in (username/password, SSO, OAuth2).
--   **Auth server** verifies credentials.
+- **Auth server** verifies credentials.
 -   If valid → issues a **JWT** signed with a secret/private key.
 
 Example payload:
@@ -67,11 +59,11 @@ JWT (simplified):
 
 ------------------------------------------------------------------------
 
-### 2. **Frontend (✏️ React or Angular) stores JWT**
+### 2. **Frontend ( React or Angular) stores JWT**
 
 -   Usually in **memory** or **Secure HttpOnly Cookie**.\
     (⚠️ Avoid `localStorage` if possible --- XSS risk).\
--   ✏️ The app adds `Authorization: Bearer <token>` to API calls (an Angular interceptor, or a React fetch wrapper). With HttpOnly cookies, the browser sends the cookie automatically and JS never sees the token.
+-    The app adds `Authorization: Bearer <token>` to API calls (an Angular interceptor, or a React fetch wrapper). With HttpOnly cookies, the browser sends the cookie automatically and JS never sees the token.
 
 ------------------------------------------------------------------------
 
@@ -94,7 +86,7 @@ JWT (simplified):
 
 -   BFF forwards calls to microservices.\
 -   Either:
-    -   **Pass the JWT along** (propagate identity).\
+    - **Pass the JWT along** (propagate identity).\
     -   Or issue **new internal token** for microservice communication.
 
 ------------------------------------------------------------------------
@@ -118,7 +110,7 @@ npm i jsonwebtoken
 **Middleware in Express** (`auth.js`):
 
 ``` js
-// ✏️ FIXED: 401 for invalid/expired tokens, algorithms pinned, iss/aud checked, secret from env
+// 401 for invalid or expired tokens, algorithms pinned, iss and aud checked, secret from the environment
 const jwt = require("jsonwebtoken");
 const publicKey = process.env.JWT_PUBLIC_KEY;   // RS256: verify with the issuer's public key (or fetch JWKS with jwks-rsa)
 
@@ -135,7 +127,7 @@ function authMiddleware(req, res, next) {
     });
     return next();
   } catch (err) {
-    // ✏️ 401 = not authenticated (bad/expired token). 403 is for "authenticated but not allowed".
+    //  401 = not authenticated (bad/expired token). 403 is for "authenticated but not allowed".
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
@@ -155,7 +147,7 @@ app.get("/api/secure", auth, (req, res) => {
 
 # ⚙️ Angular Example -- Attaching Token
 
-✏️ **FIXED.** The original registered a *class* interceptor with `withInterceptors()`, which only accepts **functional** interceptors, so it wouldn't work. It also read the token from `sessionStorage`, contradicting the advice above.
+`withInterceptors()` only accepts **functional** interceptors, so a class interceptor registered there does not run. Don't read the token from `sessionStorage`.
 
 **Functional interceptor (modern, standalone apps):**
 
@@ -190,7 +182,7 @@ providers: [
 ]
 ```
 
-# ➕ ⚙️ React Example -- Attaching Token
+# ⚙️ React Example -- Attaching Token
 
 ``` ts
 // api.ts: a thin fetch wrapper; token kept in memory (module scope / context), refreshed via an HttpOnly refresh cookie
@@ -212,9 +204,9 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return res.json();
 }
 ```
-➕ Even simpler and safer: a **BFF** keeps tokens server-side and the browser only holds an HttpOnly session cookie.
+Even simpler and safer: a **BFF** keeps tokens server-side and the browser only holds an HttpOnly session cookie.
 
-# ➕ ⚙️ Spring Boot Example -- Validating JWTs
+# ⚙️ Spring Boot Example -- Validating JWTs
 
 ``` yaml
 spring.security.oauth2.resourceserver.jwt:
@@ -229,13 +221,13 @@ http.oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()));   // then @Pre
 
 # 🧩 Interview Cheat-Sheet Phrases
 
--   **JWT is stateless** → server doesn't need to keep sessions in DB.\
--   **Integrity** is guaranteed via signature, not secrecy.\
--   **Short-lived access tokens + refresh tokens** are best practice.\
--   **OAuth2 + OIDC** often sit on top (Auth0, Cognito, etc.).\
+- **JWT is stateless** → server doesn't need to keep sessions in DB.\
+- **Integrity** is guaranteed via signature, not secrecy.\
+- **Short-lived access tokens + refresh tokens** are best practice.\
+- **OAuth2 + OIDC** often sit on top (Auth0, Cognito, etc.).\
 -   In **Vanguard AWS stack**, JWTs likely issued by **Cognito / SSO**
     and verified in **Lambda / API Gateway**.
--   ✏️ In a **Spring + React on AWS** stack: issued by Cognito or the corporate IdP (OIDC), verified by Spring Security's resource server in each service, or once at the gateway.
+-    In a **Spring + React on AWS** stack: issued by Cognito or the corporate IdP (OIDC), verified by Spring Security's resource server in each service, or once at the gateway.
 
 ------------------------------------------------------------------------
 
@@ -272,7 +264,7 @@ each time.\
 
 ### 4. **Where should we store JWTs in a frontend app?**
 - *Answer:*  
-  Ideally: **HttpOnly secure cookies** (protected from XSS ➕ token theft, but then you need CSRF protection: `SameSite` + CSRF tokens).  
+  Ideally: **HttpOnly secure cookies** (protected from XSS  token theft, but then you need CSRF protection: `SameSite` + CSRF tokens).  
   Sometimes: in-memory storage (cleared on refresh, safer than localStorage).  
   ⚠️ Avoid localStorage/sessionStorage if security requirements are strict.  
 
@@ -293,9 +285,9 @@ each time.\
   - Storing too much data in the payload (tokens get large).  
   - Not checking expiration (`exp`).  
   - Using weak signing algorithms (e.g., none/HS256 with short secret).  
-  - ➕ Not pinning the algorithm in verification (alg-confusion: an RS256 public key used as an HS256 secret).  
-  - ➕ Not validating `aud`/`iss`, so a token for another app is accepted.  
-  - ➕ Long-lived access tokens with no refresh rotation.  
+  -  Not pinning the algorithm in verification (alg-confusion: an RS256 public key used as an HS256 secret).  
+  -  Not validating `aud`/`iss`, so a token for another app is accepted.  
+  -  Long-lived access tokens with no refresh rotation.  
   - Treating JWT as encrypted — it’s only **signed** by default (anyone can read payload).  
 
 ### 8. **What’s the difference between JWT and opaque tokens?**
@@ -314,7 +306,7 @@ each time.\
   - Short TTL (time-to-live) + refresh tokens.  
   - Maintain a **revocation list/blacklist** for high-risk scenarios.  
   - Rotate signing keys (invalidate all tokens at once).  
-  - ➕ **Refresh-token rotation** with reuse detection: each refresh issues a new refresh token, and reuse of an old one revokes the whole family.  
+  - **Refresh-token rotation** with reuse detection: each refresh issues a new refresh token, and reuse of an old one revokes the whole family.  
   - Use reference tokens (less common, moves back to server-side validation).  
 
 ### 11. **When would you NOT use JWT?**
@@ -332,7 +324,7 @@ each time.\
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - "JWT is encrypted": no, it's base64url. Anyone can decode the payload.
 - Putting PII or permissions you'd regret leaking into the payload.
 - `jwt.decode()` instead of `jwt.verify()`: decode doesn't check the signature.

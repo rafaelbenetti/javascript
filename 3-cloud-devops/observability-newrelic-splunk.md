@@ -3,8 +3,8 @@
 > Group 3 · Priority MEDIUM · Prep guide Q24 · Status: new file
 > Honest framing: Rafael's real tools are **PagerDuty on-call, Elasticsearch log queries, Kafka lag monitoring, Mixpanel, GCP logs**. Don't claim New Relic or Splunk hands-on unless true. The bridge: "same workflow, different tools".
 
-## Say it in 30 seconds
-"Observability is being able to answer 'what's wrong and why' from the outside, using logs, metrics and traces tied together by a trace or correlation ID. I alert on user-facing symptoms like error rate, latency and queue lag rather than CPU, with dashboards and runbooks behind each alert. New Relic is the APM side: transactions, slow SQL, distributed traces, browser and Core Web Vitals. Splunk is log search and analytics. At EPAM I'm on PagerDuty on-call, where I debug with Elasticsearch log queries, Kafka consumer lag and Mixpanel for user impact. New Relic and Splunk are the same workflow with different query languages."
+## Say it in 1 minute
+"Observability means saying what is wrong, and why, from outside the process. I want logs, metrics, and traces on one correlation id, so a slow request can be walked from the browser to the query. I page on symptoms a user would feel: error rate, latency, and queue lag, with a dashboard and a runbook behind the alert. CPU is a clue I look at after the page has already fired. New Relic is the APM the job description asks about: transactions, slow SQL, distributed traces, and Core Web Vitals. Splunk is the log search. The tools I have operated at EPAM are PagerDuty, Elasticsearch queries, Kafka consumer lag, and Mixpanel for user impact. New Relic and Splunk are that same workflow with different query languages."
 
 ---
 

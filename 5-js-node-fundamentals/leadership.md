@@ -1,13 +1,11 @@
 # 👨‍💻 Development Team Leader — Interview Q&A
 
-> Group 5 · Former `LEADERSHIP.md`, content kept as-is, with small additions · Priority LOW for this interview (it's a fullstack IC role), but useful for "how do you keep quality high / mentor / work with the team"
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
-> Changelog: added this header, the 30-second summary, the "tie it to your real stories" section, DORA metrics in Q13, and traps. The original 30 Q&A are unchanged.
+> Group 5 · Priority LOW for this interview (it's a fullstack IC role), but useful for "how do you keep quality high / mentor / work with the team"
 
-## ➕ Say it in 30 seconds
-"I keep quality high by making it automatic: linting, typed contracts and tests run in the pipeline, with a coverage gate (we used 80% in Jenkins), so reviews can focus on design and readability. I unblock early and say trade-offs out loud. I'd rather re-scope with the product owner than ship something fragile. And I spread knowledge through pairing, small PRs and written decisions, so nobody becomes a silo. For example, on the OneHome Favorites feature I worked across the front end, the backend service and the Kafka/Elasticsearch pipeline **[confirm your exact part, e.g. how you shared knowledge about the sync]**."
+## Say it in 1 minute
+"I keep quality high by making the boring parts automatic. Linting, typed contracts, and tests run in the pipeline, and a coverage gate, we used 80 percent in Jenkins, means review time goes to design and readability. When something is slipping I say the trade-off early. I would rather re-scope with the product owner than ship something fragile and call it done. Knowledge has to move as well. Pairing, small pull requests, and a short written decision stop one person from becoming the only one who understands a flow. The example I reach for is OneHome Favorites. I worked across the front end, the backend service, and the Kafka and Elasticsearch pipeline. **[confirm your exact part, e.g. how you shared knowledge about the sync]** That is the shape of the answer I want in a spoken interview: the practice, then a real story, then what I would do again."
 
-## ➕ Tie it to your real stories (spoken interview: always answer with an example)
+## Tie it to your real stories (spoken interview: always answer with an example)
 | Likely question | Your story (fill the [ ] before the call) |
 |---|---|
 | How do you keep code quality high? (Q1, Q19) | Jenkins pipelines at CWI and EPAM with an **80% coverage gate** **[what you added: tests, the gate itself, review rules?]** |
@@ -189,7 +187,7 @@ Use STAR: **S**ituation (1 sentence) → **T**ask → **A**ction (what *you* did
 - Delivery metrics: velocity, throughput, lead time.
 - Quality metrics: bug count, escaped defects.
 - Team health: turnover, engagement surveys.
-- ➕ **DORA metrics**: deployment frequency, lead time for changes, change failure rate, time to restore service (plus rework rate in recent DORA reports). Measure the **team/system**, never individuals.
+- **DORA metrics**: deployment frequency, lead time for changes, change failure rate, time to restore service (plus rework rate in recent DORA reports). Measure the **team/system**, never individuals.
 - Balance numbers with **qualitative feedback**.
 
 **Takeaway:** People > metrics, but metrics help identify trends.
@@ -412,7 +410,7 @@ Use STAR: **S**ituation (1 sentence) → **T**ask → **A**ction (what *you* did
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - Answering in generalities ("I always communicate"). Give one real example per answer.
 - Saying "we" for everything. Say what **you** did.
 - Using velocity to compare teams or people.

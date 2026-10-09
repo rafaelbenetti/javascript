@@ -1,18 +1,9 @@
 # 🎨 SCSS (Sass) Prep — Overview + Top 20 Interview Q&A
 
-> Group 2 · Corrected version of the former `PRE-PROCESSORS.md` · Priority MEDIUM (the JD lists Sass)
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 2 · Priority MEDIUM (the JD lists Sass)
 
-## What was fixed (changelog)
-1. **Q6 partials**: used `@import`, which is **deprecated since Dart Sass 1.80 (Oct 2024)** and scheduled for removal in Dart Sass 3.0. Switched to `@use`/`@forward`.
-2. **Q8 and Q9 division**: `/` as division (`$px / 16`, `(100% / 3)`) is deprecated. Use `math.div()` from `sass:math`.
-3. **Q9 and Q15 color functions**: global `lighten()`/`darken()`/`mix()` are deprecated (global built-ins). Use `color.adjust()`/`color.scale()`/`color.mix()` from `sass:color`.
-4. **Q16 responsive**: switched to mobile-first `min-width` breakpoints using a map.
-5. **Q19 compile**: Dart Sass is the only maintained implementation. LibSass/`node-sass` are deprecated.
-6. **➕ Added** Q21–Q24 (CSS Modules + Sass in React, BEM, Sass vs native CSS features, design tokens), the 30-second summary and traps.
-
-## ➕ Say it in 30 seconds
-"Sass (SCSS syntax) adds variables, nesting, mixins, functions and modules to CSS at build time. Today I use the module system (`@use` and `@forward`), not the deprecated `@import`, and namespaced built-ins like `math.div` and `color.adjust`. In React I pair it with CSS Modules (`Button.module.scss`) for scoping, and I keep runtime theming in CSS custom properties, because Sass variables disappear after compilation. Native CSS now has nesting, custom properties and container queries, so Sass is mostly about organisation, mixins and design tokens. On Benwer Cars I used Tailwind, so I know the utility-first alternative too."
+## Say it in 1 minute
+"Sass, in the SCSS syntax, adds variables, nesting, mixins, functions, and modules to CSS, and all of that is gone once the build emits plain CSS. What I write today is the module system, @use and @forward. Division and colour go through the namespaced built-ins, math.div and color.adjust, from sass:math and sass:color. In React I pair that with CSS Modules, a file like Button.module.scss beside the component, so the class names stay local. Theming that has to change at runtime lives in CSS custom properties, because a Sass variable cannot be updated from the browser. Native CSS now has nesting, custom properties, and container queries, so Sass earns its place as organisation, mixins, and a set of design tokens. On Benwer Cars I used Tailwind, so I can talk about a utility-first stylesheet as a real alternative I have shipped, not as a tool I have only read about."
 
 
 ---
@@ -121,7 +112,7 @@ body {
 - Example: `_variables.scss` loaded into `main.scss` with:
 
 ```scss
-// ✏️ FIXED: @import is deprecated (Dart Sass 1.80+), use the module system
+// @import is deprecated (Dart Sass 1.80+), use the module system
 @use "variables" as vars;      // namespaced: vars.$primary
 // or re-export a group of partials from an index file:
 // _index.scss →  @forward "variables"; @forward "mixins";
@@ -142,7 +133,7 @@ body {
 - Math directly in styles.
 
 ```scss
-// ✏️ FIXED: slash division is deprecated ("/" is a separator in modern CSS, e.g. grid-area: 1 / 3)
+// slash division is deprecated ("/" is a separator in modern CSS, e.g. grid-area: 1 / 3)
 @use "sass:math";
 .container {
   width: math.div(100%, 3);
@@ -153,11 +144,11 @@ body {
 
 ### 9) How do SCSS functions work?
 
-- ✏️ Built-in, now namespaced in modules: `color.adjust()`, `color.scale()`, `color.mix()`, `math.div()`, `math.round()`, `map.get()`, `list.nth()`. (Global `darken()`/`lighten()`/`mix()` are deprecated.)
+-  Built-in, now namespaced in modules: `color.adjust()`, `color.scale()`, `color.mix()`, `math.div()`, `math.round()`, `map.get()`, `list.nth()`. (Global `darken()`/`lighten()`/`mix()` are deprecated.)
 - Custom:
 
 ```scss
-// ✏️ FIXED: math.div instead of "/"
+// math.div instead of "/"
 @use "sass:math";
 @function pxToRem($px) {
   @return math.div($px, 16) * 1rem;
@@ -237,7 +228,7 @@ body {
 - Examples:
 
 ```scss
-// ✏️ FIXED: global lighten()/mix() are deprecated → sass:color module
+// global lighten()/mix() are deprecated → sass:color module
 @use "sass:color";
 .button {
   background: color.adjust(#0070f3, $lightness: 20%);   // like old lighten()
@@ -255,7 +246,7 @@ body {
 - Use mixins with media queries.
 
 ```scss
-// ✏️ FIXED: mobile-first (min-width) with a breakpoint map, instead of a max-width special case
+// mobile-first (min-width) with a breakpoint map, instead of a max-width special case
 @use "sass:map";
 $breakpoints: (md: 48rem, lg: 64rem, xl: 80rem);
 
@@ -267,7 +258,7 @@ $breakpoints: (md: 48rem, lg: 64rem, xl: 80rem);
   @include up(lg) { max-width: 72rem; margin-inline: auto; }
 }
 ```
-- **➕** For components, consider **container queries** (`@container (min-width: 30rem)`), which work fine inside Sass.
+- For components, consider **container queries** (`@container (min-width: 30rem)`), which work fine inside Sass.
 
 ---
 
@@ -297,7 +288,7 @@ $breakpoints: (md: 48rem, lg: 64rem, xl: 80rem);
 
 - With CLI: `sass style.scss style.css`.
 - With build tools: Webpack, Vite, Angular CLI, Next.js config.
-- **✏️** Use **Dart Sass** (`sass` npm package, or `sass-embedded` for speed). **LibSass / `node-sass` are deprecated**, and Ruby Sass is long dead. Webpack: `sass-loader` → `css-loader` → `MiniCssExtractPlugin.loader`. Vite: just install `sass`.
+- Use **Dart Sass** (`sass` npm package, or `sass-embedded` for speed). **LibSass / `node-sass` are deprecated**, and Ruby Sass is long dead. Webpack: `sass-loader` → `css-loader` → `MiniCssExtractPlugin.loader`. Vite: just install `sass`.
 
 ---
 
@@ -306,11 +297,11 @@ $breakpoints: (md: 48rem, lg: 64rem, xl: 80rem);
 - Over-nesting (leads to deep selectors).
 - Mixing too much logic → hard to maintain.
 - Using too many `@extends` → selector bloat.
-- **➕** Still using `@import` / `/` division / global color functions → deprecation warnings now, and errors in future Dart Sass versions.
+- Still using `@import` / `/` division / global color functions → deprecation warnings now, and errors in future Dart Sass versions.
 
 ---
 
-### ➕ 21) How do you use Sass in React?
+### 21) How do you use Sass in React?
 
 ```scss
 // Button.module.scss
@@ -324,18 +315,18 @@ import styles from "./Button.module.scss";
 ```
 - **CSS Modules** generate unique class names, so styles are scoped and there are no global collisions. Alternatives: global Sass + BEM, CSS-in-JS (styled-components, now less favoured with Server Components), Tailwind (used on Benwer Cars).
 
-### ➕ 22) What is BEM?
+### 22) What is BEM?
 Block__Element--Modifier: `.card`, `.card__title`, `.card--featured`. It gives flat, low-specificity selectors and readable intent. With Sass: `.card { &__title {} &--featured {} }`. Less needed with CSS Modules.
 
-### ➕ 23) Sass vs modern native CSS?
+### 23) Sass vs modern native CSS?
 Native CSS now has **custom properties** (runtime theming), **nesting** (baseline since 2023), `@layer` (cascade control), container queries, `color-mix()`, `:has()`. Sass still adds compile-time logic, mixins, loops, maps and modules. Common setup: Sass for structure and tokens, CSS variables for themes like dark mode.
 
-### ➕ 24) How do you manage design tokens?
+### 24) How do you manage design tokens?
 A single source (JSON → Style Dictionary) generating Sass variables **and** CSS custom properties. Components use tokens (`$space-2`, `var(--color-primary)`), never raw hex values. Theming switches the CSS variables at runtime.
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - Deep nesting (>3 levels) causes specificity wars and brittle selectors.
 - `@extend` across media queries doesn't work, and it bloats selectors. Prefer mixins or placeholders sparingly.
 - Sass variables can't change at runtime (dark mode needs CSS variables).

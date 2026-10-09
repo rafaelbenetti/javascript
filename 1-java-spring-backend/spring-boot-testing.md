@@ -2,8 +2,8 @@
 
 > Group 1 · Priority HIGH · Prep guide Q19 · Status: new file
 
-## Say it in 30 seconds
-"I follow the test pyramid. Lots of fast unit tests on services with JUnit 5 and Mockito, where dependencies are mocked through the constructor. Then slice tests: `@WebMvcTest` with MockMvc for controllers (status codes, validation, JSON), and `@DataJpaTest` for repository queries. A few `@SpringBootTest` integration tests against a real MySQL in Testcontainers. Coverage is measured with JaCoCo and enforced as a gate in Jenkins. On OneHome I took frontend coverage from about 30–40% to 80% and added a CI gate so it can't slip. The same principle applies on the backend: the gate is a floor, and meaningful assertions matter more than the number."
+## Say it in 1 minute
+"I follow the test pyramid, and the shape is the point. Most tests are fast unit tests on the service, JUnit 5 and Mockito, with the mocks passed through the constructor so nothing starts a Spring context. Above that I use slice tests. WebMvcTest with MockMvc checks status codes, validation, and JSON without booting a database. DataJpaTest checks repository queries against a real slice of JPA. Only a few tests are full SpringBootTest integration tests, and those talk to a real MySQL started by Testcontainers. JaCoCo measures coverage and Jenkins enforces it as a gate. On OneHome I took front-end coverage from about 30 to 40 percent up to 80 percent and put that gate in CI so it could not slide back. The same idea applies on the backend. The percentage is a floor. The assertions are what tell you the behaviour is actually protected."
 
 ---
 

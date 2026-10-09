@@ -1,10 +1,10 @@
 # 📊 Adobe Analytics, Adobe Target & Web Video: What a Fullstack Dev Needs to Know
 
-> Group 5 · ➕ NEW file · Priority LOW–MEDIUM (it's in the Applica stack/JD; know the concepts and bridge from Mixpanel)
+> Group 5 · Priority LOW–MEDIUM (it's in the Applica stack/JD; know the concepts and bridge from Mixpanel)
 > Honest framing: your real product-analytics experience is **Mixpanel** **[confirm what you did: event design, implementation, dashboards?]**. Adobe is the same ideas with enterprise tooling. Say so honestly, then show you know the moving parts.
 
-## Say it in 30 seconds
-"Analytics on a modern site starts with a **data layer**: the app pushes structured events like page view, search or favorite-added, and a tag manager maps them to the vendor. With Adobe that's the Experience Platform **Web SDK** (alloy.js) sending XDM events, managed through **Tags** (formerly Launch). Previously it was AppMeasurement. I've done the same with **Mixpanel**: a typed tracking layer, consistent event names and properties, and no tracking before consent. **Adobe Target** runs A/B tests and personalisation. The engineering concerns are flicker, so you prehide or decide server-side, plus consent and performance. For **video** I'd use adaptive streaming (HLS/DASH segments served from a CDN), a player like hls.js or video.js loaded lazily, captions as WebVTT, and media analytics events for play, milestones and completion."
+## Say it in 1 minute
+"Analytics starts with a data layer. The app pushes structured events, a page view, a search, a favorite added, and a tag manager maps them to the vendor. With Adobe that path is the Experience Platform Web SDK, alloy.js, sending XDM events, managed in Tags, formerly Launch. The older library was AppMeasurement. I have done the same job with Mixpanel: a typed tracking layer, consistent names and properties, and no tracking before consent. Adobe Target is the experimentation and personalisation piece. The engineering problems are flicker, so you prehide or decide on the server, plus consent and the weight of the tag. For video I would use HLS or DASH from a CDN, a player such as hls.js or video.js loaded lazily, WebVTT captions, and events for play, milestones, and completion."
 
 ---
 

@@ -1,18 +1,9 @@
 # 🧱 Architecture Patterns — Deep Dive
 
-> Group 4 · Corrected version of the former `ARCHITECTURE-PATTERNS.md` · Priority MEDIUM · Prep guide Q20
-> Legend: **✏️ CHANGED** = example swapped or text corrected · **➕ ADDED** = new · unmarked = original
+> Group 4 · Priority MEDIUM · Prep guide Q20
 
-## What was changed (changelog)
-1. **Examples swapped** from the Vanguard domain (Rollover, Nx/Angular, DynamoDB, Kinesis, EKS) to a **React + Spring Boot listings/bookings product on ECS, SQS/SNS and Aurora**, matching the Applica JD.
-2. **Modular monolith example**: added **Spring Modulith / Java packages** next to the Nx/TS version.
-3. **Ports and adapters sketch**: rewritten in **Java/Spring** (the TS version is kept as a bridge).
-4. **Outbox**: the worker now publishes to SNS/SQS (or Kafka), with a Spring example.
-5. **➕ Added**: resilience patterns (circuit breaker, bulkhead, timeouts, DLQ), the Kafka on-call story, interview Q&A, 30-second summary and traps.
-6. Content was accurate. No factual errors found in the original.
-
-## ➕ Say it in 30 seconds
-"I start with a modular monolith with strong module boundaries, and extract microservices only when team scale or different scaling needs justify the operational cost. Services own their data and talk synchronously over REST for queries, and asynchronously through events for everything else (SNS to SQS on AWS, Kafka at EPAM). Because delivery is at-least-once, consumers are idempotent. The outbox pattern guarantees 'save and publish' together, and sagas replace distributed transactions. Every call has timeouts, retries with backoff and a circuit breaker, and correlation IDs make it debuggable. I've seen that last part first-hand debugging Kafka consumer lag on call."
+## Say it in 1 minute
+"I start with a modular monolith and clear module boundaries, and I extract a service only when team scale or a different scaling need pays for the ops cost. Each service owns its data. A query that needs an answer now goes over REST with a timeout. Work that can wait goes through events: SNS into SQS on AWS, Kafka where I have operated it at EPAM. Delivery is at least once, so consumers are idempotent, with a dead-letter queue and an alarm. The outbox keeps the row and the event in one local transaction. A saga replaces a distributed transaction, with a compensating step when a later step fails. Every outbound call has a timeout, backoff, and a circuit breaker, and a correlation id makes the failure debuggable. I have chased Kafka consumer lag on call."
 
 
 ## 1) Monolith, Modular Monolith, Microservices (and how to migrate)
@@ -38,14 +29,14 @@
 
 **Key practices**
 
-- **Bounded contexts** map to modules: ✏️ `listings/`, `bookings/`, `payments/`, `users/`.
+- **Bounded contexts** map to modules:  `listings/`, `bookings/`, `payments/`, `users/`.
 - **Enforce boundaries**:
   - TS project references / path aliases;
   - lints to **forbid cross-module imports** except via public API (barrel).
 - **Private data** per module: no direct table sharing; interact via **module service interfaces**.
 - **Domain events** (in-process) between modules; async later when split.
 
-**✏️ Example (Spring Boot, Java packages + Spring Modulith)**
+**Example (Spring Boot, Java packages + Spring Modulith)**
 
 ```
 com.example.app
@@ -56,7 +47,7 @@ com.example.app
 ```
 - **Spring Modulith** verifies module boundaries in a test (`ApplicationModules.of(App.class).verify()`) and supports in-process domain events via `ApplicationEventPublisher` + `@ApplicationModuleListener`, with an event publication registry (outbox-like).
 
-**Example (Nx + TS project refs)**, the original, still valid for a Node/NestJS or front-end monorepo
+**Example (Nx + TS project refs)**, still valid for a Node/NestJS or front-end monorepo
 
 ```
 apps/api
@@ -102,7 +93,7 @@ libs/shared-kernel      (value objects, utilities)
 
 ## 2) Event-Driven Architectures (EDA)
 
-**Why EDA:** decoupling, scalability, resilience; perfect for auditability and async workflows (✏️ e.g., booking confirmation, video/media processing, search indexing, notifications).
+**Why EDA:** decoupling, scalability, resilience; perfect for auditability and async workflows ( e.g., booking confirmation, video/media processing, search indexing, notifications).
 
 **Core patterns**
 
@@ -114,19 +105,19 @@ libs/shared-kernel      (value objects, utilities)
 
 **Idempotency & ordering**
 
-- **Partition keys** (Kinesis/Kafka) ✏️ or **SQS FIFO message group IDs** to ensure per-key order.
+- **Partition keys** (Kinesis/Kafka)  or **SQS FIFO message group IDs** to ensure per-key order.
 - Include **idempotency keys** in events & dedupe at consumers.
 - At-least-once delivery is the norm → **idempotent handlers** mandatory.
 
 **Outbox sketch (SQL)**
 
 ```sql
--- ✏️ inside the same DB transaction (Aurora MySQL)
+--  inside the same DB transaction (Aurora MySQL)
 INSERT INTO booking(id, listing_id, status, ...) VALUES (...);
 INSERT INTO outbox(id, type, payload, status) VALUES (..., 'BookingCreated', '{...}', 'PENDING');
 ```
 
-✏️ A relay (scheduled Spring job on ECS, or CDC with Debezium reading the MySQL binlog) reads `PENDING` rows, publishes to **SNS** (or Kafka), and marks them `SENT`. Consumers must still dedupe, because the relay can publish twice if it crashes after publishing but before marking.
+A relay (scheduled Spring job on ECS, or CDC with Debezium reading the MySQL binlog) reads `PENDING` rows, publishes to **SNS** (or Kafka), and marks them `SENT`. Consumers must still dedupe, because the relay can publish twice if it crashes after publishing but before marking.
 
 ```java
 @Transactional
@@ -147,8 +138,8 @@ void relay() {
 
 **AWS implementation options**
 
-- **SNS → SQS fanout** for pub/sub with durable queues per consumer. ✏️ **(the default choice in the Applica stack)**
-- **Kinesis** ✏️ or **MSK (managed Kafka)** for ordered partitions/high-throughput replayable streams.
+- **SNS → SQS fanout** for pub/sub with durable queues per consumer. **(the default choice in the Applica stack)**
+- **Kinesis**  or **MSK (managed Kafka)** for ordered partitions/high-throughput replayable streams.
 - **EventBridge** for routing & SaaS integrations.
 - **Step Functions** for **saga orchestration** with visual workflows & retries.
 
@@ -170,7 +161,7 @@ void relay() {
 
 **BFF (Backend-for-Frontend)**
 
-- A thin **service per UI surface** (✏️ React web, mobile app) that **adapts** backend APIs for optimal client consumption.
+- A thin **service per UI surface** ( React web, mobile app) that **adapts** backend APIs for optimal client consumption.
 - Reduces client complexity and **decouples release cycles**.
 
 **Governance**
@@ -189,7 +180,7 @@ void relay() {
 - **Aggregates**: consistency boundaries; one transaction updates **one aggregate**.
 - **Domain Services**: domain logic that doesn’t fit an entity.
 - **Repositories**: persist aggregates; hide storage.
-- **Domain Events**: facts (✏️ “BookingRequested”) that drive reactions.
+- **Domain Events**: facts ( “BookingRequested”) that drive reactions.
 
 **Aggregate rules**
 
@@ -198,9 +189,9 @@ void relay() {
 
 **CQRS**
 
-- Separate **commands (writes)** from **queries (reads)**: different models & stores if needed for performance (✏️ e.g., Aurora for writes, an OpenSearch/Elasticsearch read model for listing search).
+- Separate **commands (writes)** from **queries (reads)**: different models & stores if needed for performance ( e.g., Aurora for writes, an OpenSearch/Elasticsearch read model for listing search).
 - Pair nicely with EDA.
-- **➕ Real example:** OneHome Favorites is a CQRS-style read side. Matrix (external MLS) owns the data, Kafka events populate an Elasticsearch index optimised for sentiment filtering and geo/map queries, and writes are synced back to Matrix.
+- **Real example:** OneHome Favorites is a CQRS-style read side. Matrix (external MLS) owns the data, Kafka events populate an Elasticsearch index optimised for sentiment filtering and geo/map queries, and writes are synced back to Matrix.
 
 ---
 
@@ -221,7 +212,7 @@ void relay() {
 - Concentric layers; **dependencies point inward** only.
 - Use **interfaces**/inversion of control to isolate domain.
 
-**✏️ Java/Spring sketch (Ports & Adapters)**
+**Java/Spring sketch (Ports & Adapters)**
 
 ```java
 // port (domain owns the interface)
@@ -255,7 +246,7 @@ public class BookingService {
 ```
 - Easy to unit test: pass fakes or mocks for the ports.
 
-**TypeScript sketch (Ports & Adapters)**, the original, renamed; the same idea in NestJS
+**TypeScript sketch (Ports & Adapters)**; the same idea in NestJS
 
 ```ts
 // port
@@ -274,7 +265,7 @@ export class BookingService {
   }
 }
 
-// adapter (✏️ Postgres via Drizzle, as on Benwer Cars)
+// adapter ( Postgres via Drizzle, as on Benwer Cars)
 export class DrizzleBookingRepo implements BookingRepo {
   /* ... */
 }
@@ -284,14 +275,14 @@ export class DrizzleBookingRepo implements BookingRepo {
 
 ## 6) Serverless vs Containerized (how to choose on AWS)
 
-**Serverless (API Gateway + Lambda + DynamoDB/✏️Aurora Serverless)**
+**Serverless (API Gateway + Lambda + DynamoDB/Aurora Serverless)**
 
 - ✅ Minimal ops, scale-to-zero, pay per use, fast iteration.
 - ✅ Great for **event-driven** + irregular traffic.
 - ❌ Cold starts (mitigate with provisioned concurrency).
 - ❌ Long-running / heavy compute not ideal.
 
-**Containerized (✏️ECS/EKS + Aurora/RDS)**
+**Containerized (ECS/EKS + Aurora/RDS)**
 
 - ✅ Full control, long-running workloads, custom runtimes, WebSockets.
 - ✅ Stable high throughput.
@@ -299,17 +290,16 @@ export class DrizzleBookingRepo implements BookingRepo {
 
 **Pragmatic pattern**
 
-- ✏️ **Containers (ECS Fargate) for the Spring Boot APIs**: warm JVMs and connection pools, steady traffic, simple local dev.
+- **Containers (ECS Fargate) for the Spring Boot APIs**: warm JVMs and connection pools, steady traffic, simple local dev.
 - **Serverless** for event-driven glue: S3 triggers, scheduled jobs, spiky queue consumers (Java Lambdas with SnapStart).
-- *(The original said "serverless by default", which made sense for the Vanguard Node/Lambda stack but less so for Spring Boot.)*
 
 ---
 
 ## 7) Data Ownership & Consistency
 
-**Per-service DB** (✏️ Aurora schema/cluster per service) → services own their data.  
+**Per-service DB** ( Aurora schema/cluster per service) → services own their data.  
 **Queries that span services** → compose at the BFF, or build **read models** via events.  
-**Sagas** coordinate multi-service workflows (✏️ e.g., Booking → Payment → Confirmation; on payment failure, compensate by releasing the booking).  
+**Sagas** coordinate multi-service workflows ( e.g., Booking → Payment → Confirmation; on payment failure, compensate by releasing the booking).  
 **Consistency model**: prefer **eventual** across services; **strong** within aggregates.
 
 **SAGA/retry principles**
@@ -323,7 +313,7 @@ export class DrizzleBookingRepo implements BookingRepo {
 ## 8) Observability & Reliability
 
 - **Correlation IDs** propagate across services (HTTP headers, message metadata).
-- **OpenTelemetry** for traces/metrics/logs; CloudWatch dashboards + alarms. ✏️ (+ New Relic APM / Splunk logs in the Applica stack)
+- **OpenTelemetry** for traces/metrics/logs; CloudWatch dashboards + alarms.  (+ New Relic APM / Splunk logs in the Applica stack)
 - **SLIs/SLOs**: latency, error rate, availability; budget **error budgets** to control release cadence.
 - **Chaos/Failure testing** in non-prod (timeouts, dependency faults).
 
@@ -344,7 +334,7 @@ export class DrizzleBookingRepo implements BookingRepo {
 - **Team growth / domain boundaries clear** → carve out **microservices** one at a time.
 - **Heavy workflows & integrations** → **event-driven** + **sagas** + **outbox**.
 - **UI experiences with varied needs** → **BFF** per client; consider **GraphQL**.
-- **➕ Slow or unreliable dependency** → timeouts + retries with backoff + **circuit breaker** + fallback.
+- **Slow or unreliable dependency** → timeouts + retries with backoff + **circuit breaker** + fallback.
 - **Irregular/peaky traffic** → **serverless**; **stable heavy** → containers.
 - **Complex authorization** → **ABAC** or policy engine; encode in BFF/gateway.
 
@@ -352,16 +342,16 @@ export class DrizzleBookingRepo implements BookingRepo {
 
 # 🛠️ Concrete Steps
 
-1. ✏️ **Modularize the monolith** (Spring Modulith / package boundaries verified in tests).
-2. Add **domain events** (in-proc) and ✏️ a thin **BFF** for the React app if the UI needs aggregation.
-3. ✏️ Extract one high-value module (e.g. notifications or media processing) as a Spring Boot service on **ECS**.
+1. **Modularize the monolith** (Spring Modulith / package boundaries verified in tests).
+2. Add **domain events** (in-proc) and  a thin **BFF** for the React app if the UI needs aggregation.
+3.  Extract one high-value module (e.g. notifications or media processing) as a Spring Boot service on **ECS**.
 4. Introduce **outbox** in the monolith + **SNS/SQS** consumers for the new slice.
 5. Add **OpenTelemetry** + **correlation IDs** end-to-end.
 6. Document **bounded contexts** + ERDs; align with stakeholders using **Ubiquitous Language**.
 
 ---
 
-## ➕ 10) Resilience patterns (know these by name)
+## 10) Resilience patterns (know these by name)
 
 | Pattern | What | Spring/AWS |
 |---|---|---|
@@ -375,7 +365,7 @@ export class DrizzleBookingRepo implements BookingRepo {
 
 ---
 
-## ➕ 11) Interview questions (spoken model answers)
+## 11) Interview questions (spoken model answers)
 
 **Q: Monolith or microservices?**
 "It depends on team and domain maturity. For a new product or small team, a modular monolith: one deployable, clear module boundaries, simple transactions and debugging. Microservices pay off when independent teams need independent deploys, or parts need different scaling. They cost distributed-systems complexity: network failures, eventual consistency, observability, many pipelines. I'd evolve towards them by extracting the modules with the clearest boundaries."
@@ -397,7 +387,7 @@ export class DrizzleBookingRepo implements BookingRepo {
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - A shared database between microservices is a distributed monolith.
 - Retrying non-idempotent calls means double charges or bookings.
 - Synchronous call chains (A→B→C→D) multiply latency and failure probability.

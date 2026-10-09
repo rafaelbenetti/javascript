@@ -3,8 +3,8 @@
 > Group 2 · Priority LOW–MEDIUM · Prep guide Q12 (JD: "CMS integration") · Status: new file
 > Honest framing: this isn't on Rafael's CV. If true, say: "I haven't owned a CMS integration end to end, but this is how I'd approach it." Bridge: API integration, typed contracts, caching and performance work.
 
-## Say it in 30 seconds
-"A headless CMS stores structured content and exposes it over an API, REST or GraphQL. React decides how it looks. I'd model content types with editors (page, hero, article, video), generate TypeScript types from the schema, and render with a component map from content type to React component, with safe fallbacks for unknown or missing fields. Content is cached at the CDN or through static generation, and the CMS calls a webhook on publish to revalidate or purge. Editors get a preview mode showing drafts. I haven't owned a CMS integration end to end, but it's the same API-integration, typing and caching work I do every day."
+## Say it in 1 minute
+"A headless CMS stores structured content and serves it over REST or GraphQL. React decides how it looks. I would model pages, heroes, articles, and video as reusable blocks with the editors in the room. Types generated from the schema turn a renamed field into a compile error. A component map renders each block, with a fallback for an unknown type, and rich text is sanitised. Content is cached at the CDN or generated statically, and publish hits a webhook so we revalidate. Editors get a preview for drafts. I have not owned a CMS integration end to end. The daily work is the same: a typed API, a cache, and a renderer that survives a payload it did not expect."
 
 ---
 

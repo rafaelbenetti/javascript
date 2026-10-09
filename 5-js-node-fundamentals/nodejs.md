@@ -1,18 +1,9 @@
 # 🟢 Node.js Prep — Top 20 Interview Q&A
 
-> Group 5 · Corrected version of the former `NODEJS.md` · Priority LOW–MEDIUM (bridge for backend talk: NestJS ≈ Spring)
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 5 · Priority LOW–MEDIUM (bridge for backend talk: NestJS ≈ Spring)
 
-## What was fixed (changelog)
-1. **Q2 event loop phases** were muddled ("timers → I/O → poll → check → close"). Correct order: **timers → pending callbacks → idle/prepare → poll (I/O) → check → close callbacks**, with microtasks (`nextTick`, then promises) drained between callbacks.
-2. **Q2** "while one request runs, others wait in a queue until resources are free" was misleading. Other requests proceed while one awaits I/O. Only **synchronous CPU-bound** code blocks everyone.
-3. **Q3**: network I/O does **not** use the libuv thread pool. It uses the OS's non-blocking mechanisms (epoll/kqueue/IOCP). The thread pool (default 4 threads) handles fs, `dns.lookup`, crypto (pbkdf2, scrypt) and zlib.
-4. **Q7**: ESM was unflagged in Node 12.17/13.2 and stable in 14. Node 22 (and 20.19+) can `require()` ESM.
-5. **Q13**: added that the built-in `cluster` module and containers both scale horizontally.
-6. **➕ Added**: Node versions and LTS, native TypeScript type-stripping, the built-in test runner, `fetch`, the NestJS ↔ Spring bridge, the Benwer Cars backend, the Favorites/Kafka story link, 30-second summary and traps.
-
-## ➕ Say it in 30 seconds
-"Node runs JavaScript on V8 with libuv providing an event loop and non-blocking I/O, so one thread can serve thousands of concurrent connections as long as nothing blocks it with CPU-heavy work. That goes to worker threads or another service. On the backend I've worked mostly with NestJS, which is structured like Spring: modules, providers with constructor DI, controllers, DTO validation pipes, guards and exception filters. I built the Benwer Cars backend with NestJS and Postgres via Drizzle **[confirm scope]**. That's why Spring Boot concepts feel natural to me."
+## Say it in 1 minute
+"Node runs JavaScript on V8, and libuv gives it an event loop plus non-blocking I/O, so one thread can hold thousands of connections as long as CPU work does not block it. That kind of work goes to worker threads or to another service. Network I/O uses the operating system and does not sit on the libuv thread pool. The file system, dns.lookup, and some crypto calls do, which is the distinction I like to be able to draw. On the backend I have mostly used NestJS, and it is structured the way Spring is: modules, providers with constructor injection, controllers, validation pipes, guards, and exception filters. That is why Spring Boot feels familiar. I built the Benwer Cars backend that way, NestJS and Postgres through Drizzle **[confirm scope]**. The habits carry over: a thin controller, validation at the boundary, and no heavy synchronous work on the request path."
 
 
 ---
@@ -39,15 +30,15 @@
 ### 2) Explain the Event Loop in Node.js.
 
 - Node.js runs JS in a **single thread** but uses the **event loop** (via libuv) to manage concurrency.
-- ✏️ **FIXED phases:** **timers** (`setTimeout`/`setInterval`) → **pending callbacks** (some deferred system errors) → idle/prepare (internal) → **poll** (retrieve new I/O events, run I/O callbacks; may block here waiting) → **check** (`setImmediate`) → **close callbacks** (`socket.on('close')`). Between each callback, `process.nextTick` queue then promise microtasks are drained.
-- ✏️ **FIXED:** while one request **awaits I/O**, the loop serves other requests. Concurrency is the default. What blocks *everyone* is long **synchronous** work (big JSON.parse, sync crypto, tight loops, `fs.readFileSync` in a handler).
+- **timers** (`setTimeout`/`setInterval`) → **pending callbacks** (some deferred system errors) → idle/prepare (internal) → **poll** (retrieve new I/O events, run I/O callbacks; may block here waiting) → **check** (`setImmediate`) → **close callbacks** (`socket.on('close')`). Between each callback, `process.nextTick` queue then promise microtasks are drained.
+- while one request **awaits I/O**, the loop serves other requests. Concurrency is the default. What blocks *everyone* is long **synchronous** work (big JSON.parse, sync crypto, tight loops, `fs.readFileSync` in a handler).
 
 ---
 
 ### 3) How is Node.js single-threaded but handles many requests?
 
 - JS execution = single thread.
-- ✏️ **FIXED:** **network I/O** (sockets, HTTP, DB drivers) uses the OS's async mechanisms (**epoll/kqueue/IOCP**), with no threads per request. **libuv's thread pool** (default **4**, `UV_THREADPOOL_SIZE`) is only for things the OS can't do asynchronously: **file system**, `dns.lookup`, **crypto** (pbkdf2, scrypt, randomBytes), **zlib**.
+- **network I/O** (sockets, HTTP, DB drivers) uses the OS's async mechanisms (**epoll/kqueue/IOCP**), with no threads per request. **libuv's thread pool** (default **4**, `UV_THREADPOOL_SIZE`) is only for things the OS can't do asynchronously: **file system**, `dns.lookup`, **crypto** (pbkdf2, scrypt, randomBytes), **zlib**.
 - Results are queued back → allows concurrency without multi-threaded JS.
 
 ---
@@ -97,9 +88,9 @@ app.use((req, res, next) => {
 ### 7) What is the difference between CommonJS and ES Modules?
 
 - **CommonJS (CJS)** → `require()`, synchronous, older default.
-- ✏️ **ESM** → `import/export`, statically analysable, async loading. Unflagged in Node 12.17/13.2, stable since **14**. Enable via `"type": "module"` or `.mjs`.
+- **ESM** → `import/export`, statically analysable, async loading. Unflagged in Node 12.17/13.2, stable since **14**. Enable via `"type": "module"` or `.mjs`.
 - Today → prefer ESM, but many packages still ship in CJS.
-- ➕ Interop: ESM can `import` CJS. **Node 22+ (and 20.19+) can `require()` synchronous ESM**, which ends most dual-package pain.
+-  Interop: ESM can `import` CJS. **Node 22+ (and 20.19+) can `require()` synchronous ESM**, which ends most dual-package pain.
 
 ---
 
@@ -151,7 +142,7 @@ app.use(cors({ origin: "https://example.com" }));
 
 ### 13) How do you scale Node.js applications?
 
-- **Clustering** → one worker per CPU core. ✏️ (Built-in `cluster` module, or PM2. In containers, prefer one process per container and scale the number of containers/tasks on ECS/Kubernetes.)
+- **Clustering** → one worker per CPU core.  (Built-in `cluster` module, or PM2. In containers, prefer one process per container and scale the number of containers/tasks on ECS/Kubernetes.)
 - **Load balancing** → distribute traffic across instances.
 - **Horizontal scaling** → Docker, Kubernetes, AWS ECS/EKS.
 
@@ -220,12 +211,12 @@ emitter.emit("msg", "Hello");
 
 ---
 
-### ➕ 21) What's current in Node (2025–26)?
+### 21) What's current in Node (2025–26)?
 - LTS lines: **Node 22** and **Node 24** (even versions become LTS; odd ones are short-lived).
 - Built-ins that replace dependencies: global **`fetch`**/`WebSocket`, **`node:test`** test runner, `--watch`, `--env-file=.env`, permission model (`--permission`).
 - **Native TypeScript type-stripping**: `node app.ts` runs TS by erasing types (unflagged in Node 23.6/22.18+). It doesn't type-check, and it doesn't support enums/namespaces without a flag (hence TS's `--erasableSyntaxOnly`).
 
-### ➕ 22) NestJS ↔ Spring Boot (your bridge)
+### 22) NestJS ↔ Spring Boot (your bridge)
 | NestJS | Spring Boot |
 |---|---|
 | `@Module` | `@Configuration` / component scan |
@@ -237,15 +228,15 @@ emitter.emit("msg", "Hello");
 | Interceptor | `HandlerInterceptor` / AOP |
 | `ConfigModule` | `@ConfigurationProperties` + profiles |
 
-### ➕ 23) Tell me about a Node backend you built. (real)
+### 23) Tell me about a Node backend you built. (real)
 "Benwer Cars: a NestJS backend with Postgres through Drizzle (I owned the schema, migrations and queries), Stripe payments, S3, Docker, and OpenAPI-generated typed clients for the front end." **[confirm: your exact role/team size, the HTTP adapter (Express or Fastify), and scale/outcome numbers]**
 
-### ➕ 24) Kafka consumer in Node: what matters?
+### 24) Kafka consumer in Node: what matters?
 At-least-once delivery means idempotent handlers (upsert with a deterministic key), commit offsets after successful processing, a retry topic plus DLQ for poison messages, and alerts on consumer lag. Same lessons as the OneHome Favorites feature (Kafka → Elasticsearch, sync back to Matrix). See `../1-java-spring-backend/java-spring-boot-essentials.md`. *[confirm which parts of the Favorites consumer ran on Node vs another stack before saying it]*
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - `fs.readFileSync`, sync crypto or giant `JSON.parse` in a request handler blocks every user.
 - Unhandled promise rejections crash the process (since v15). Always `await`/`catch`.
 - `process.nextTick` recursion starves the event loop.

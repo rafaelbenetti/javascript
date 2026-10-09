@@ -3,8 +3,8 @@
 > Group 3 · Priority MEDIUM · Prep guide Q23 · Status: new file
 > Real experience: Jenkins pipelines at CWI and EPAM (80% coverage gate). Docker on Benwer Cars.
 
-## Say it in 30 seconds
-"I containerise Spring Boot with a multi-stage Dockerfile: build with a JDK image, run on a slim JRE image as a non-root user, with Spring Boot layered jars so dependency layers cache well. The React app is built in Node and served from S3 and CloudFront, or nginx if containerised. The Jenkins declarative pipeline runs frontend and backend tests in parallel with coverage gates, then static analysis and dependency scans, builds the image tagged with the git SHA, pushes it to ECR, deploys to ECS, runs smoke tests, and promotes the same image to production after approval. I've run Jenkins pipelines since CWI, and at EPAM ours enforces an 80% coverage gate."
+## Say it in 1 minute
+"I containerise Spring Boot with a multi-stage Dockerfile: a JDK to build, a slim JRE to run, not as root, and layered jars so dependencies stay cached when only the app changes. React is built in Node and served from S3 and CloudFront, or from nginx if it has to be a container. The Jenkins pipeline is declarative. Front-end and backend tests run in parallel with coverage gates, then static analysis and dependency scans. The image is tagged with the git SHA, pushed to ECR, deployed to ECS, and smoked. That same image is promoted after approval. I have run Jenkins pipelines since CWI, and at EPAM the pipeline enforces an 80 percent coverage gate, so a pull request under that line is not finished."
 
 ---
 

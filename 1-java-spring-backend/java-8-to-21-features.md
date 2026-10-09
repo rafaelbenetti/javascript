@@ -3,10 +3,8 @@
 > Group 1 · Priority HIGH · Prep guide Q18 · Status: new file
 > The JD lists Java 8/11/21: expect "what changed?" and "what would you use?"
 
-## Say it in 30 seconds
-"Java 8 brought the functional style: lambdas, streams, `Optional` and `java.time`. 11 was the next LTS, with `var` (from 10), the new `HttpClient` and string helpers. 17 is the baseline for Spring Boot 3: records for DTOs, sealed classes, text blocks, switch expressions and pattern matching for `instanceof`. 21 adds virtual threads, which make blocking I/O cheap so a normal Spring MVC service scales like a reactive one, plus pattern matching for switch, record patterns and sequenced collections. Coming from TypeScript, records feel like readonly types and sealed interfaces plus switch patterns feel like discriminated unions."
-
-LTS versions: **8, 11, 17, 21, 25** (Sept 2025). Spring Boot 3 requires **17+**.
+## Say it in 1 minute
+"If someone asks what changed from Java 8 to 21, I talk about what I would actually use. Java 8 is the functional baseline: lambdas, streams, Optional, and java.time. 11 is the next long-term release I still meet, with var from 10, the new HttpClient, and string helpers. 17 is what Spring Boot 3 sits on: records for DTOs, sealed classes, text blocks, switch expressions, and pattern matching for instanceof. 21 adds virtual threads, so blocking I/O gets cheap and a normal Spring MVC service can scale without a reactive rewrite, plus switch patterns, record patterns, and sequenced collections. The long-term releases are 8, 11, 17, 21, and 25 from September 2025, and Boot 3 needs 17 or newer. Coming from TypeScript, records feel like readonly types, and sealed types with switch patterns feel like discriminated unions."
 
 ---
 

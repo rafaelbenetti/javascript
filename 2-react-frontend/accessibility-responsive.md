@@ -3,8 +3,8 @@
 > Group 2 · Priority MEDIUM · Prep guide Q9, Q13 · Status: new file
 > Honest note: describe only the a11y work you've actually done. Don't claim audits you haven't led.
 
-## Say it in 30 seconds
-"Accessibility starts with semantic HTML: real buttons, links, labels, headings and landmarks. Then keyboard support with visible focus, focus management for modals and route changes, enough colour contrast, and ARIA only when no native element fits. The target is WCAG 2.2 AA. I test with axe or Lighthouse, keyboard-only, and a screen reader for key flows, and RTL's role queries keep accessibility in the tests. For responsive design I go mobile-first with fluid layouts (flex and grid), relative units, `clamp()` for type, container queries for components, and responsive images with `srcset`. Images were a big part of the OneHome performance work too."
+## Say it in 1 minute
+"Accessibility starts with semantic HTML: a real button, link, label, heading, or landmark. Then a visible focus style, focus moved and restored for dialogs and client-side route changes, and contrast that meets WCAG 2.2 AA. Colour is never the only signal. ARIA fills a gap a native element cannot, and a div with a button role usually means the element should have been a button. I check with axe or Lighthouse, a keyboard-only pass, and a screen reader on the important flows. Role queries in React Testing Library keep some of that in the unit tests. Responsive work is mobile first: fluid flex and grid, relative units, clamp for type, container queries, and images with srcset plus width and height. Image sizing and lazy loading were a large part of the OneHome performance work too."
 
 ---
 

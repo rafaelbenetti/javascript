@@ -3,8 +3,8 @@
 > Group 2 · Priority HIGH · Prep guide Q8 · Status: new file
 > Honest note: Rafael has used Jasmine/Karma and Vitest too. The Jest/RTL concepts are the same.
 
-## Say it in 30 seconds
-"I test behaviour, not implementation: render the component, interact the way a user would with `userEvent`, and assert on what the user sees. I query by role and accessible name, which also pushes the markup towards accessibility. The network is mocked at the boundary with MSW, async UI uses `findBy`, and there are no snapshot-heavy tests. The pyramid is many component and unit tests, some integration, and a few Playwright end-to-end tests. On OneHome I took coverage from about 30–40% to 80% and added an 80% gate in CI so it can't slip. But coverage is a floor: the assertions are what matter."
+## Say it in 1 minute
+"I test what a user can see and do. I render the component, interact with userEvent, and assert on the screen. Queries go by role and accessible name, so inaccessible markup makes the test harder. The network is mocked with MSW, so the real fetching code still runs. Async UI uses findBy, which retries. I skip large snapshots. The pyramid is many component tests, some integration tests, and a few Playwright tests on the paths that matter. On OneHome I took coverage from about 30 to 40 percent up to 80 percent **[how you actually did it, e.g. which flows you covered first]**, and I put that gate in CI. Coverage is a floor. A test can be green and still assert nothing useful."
 
 ---
 

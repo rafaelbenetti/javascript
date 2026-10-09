@@ -1,24 +1,10 @@
 # 🅰️ Angular Prep Guide
 
-> Group 6 · Corrected version of the former `other/angular.md` · Priority LOW for this interview (the product stack is React + Spring; know Angular if they probe it, or for an Angular role)
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 6 · Priority LOW for this interview (the product stack is React + Spring; know Angular if they probe it, or for an Angular role)
 > Related: [rxjs.md](rxjs.md) · functional interceptor also in [jwt.md](../4-architecture-security/jwt.md)
 
-## What was fixed (changelog)
-1. **Build tooling.** ✏️ Tree-shaking is not "Webpack + Terser" anymore. Since v17 the default application builder bundles with **esbuild**, and `ng serve` uses **Vite**. Webpack (and Terser) is the legacy builder, deprecated in v22. **AOT has been the default since v9.** "Vite in v18+" was a version error.
-2. **Standalone.** ✏️ Since **v19**, components, directives and pipes are standalone **by default**. `standalone: true` is redundant. `standalone: false` is how a declaration stays in an NgModule.
-3. **Control flow.** ✏️ `*ngIf` / `*ngFor` / `*ngSwitch` are the legacy syntax. Built-in `@if` / `@for` / `@switch` have been stable since **v17**, need no `CommonModule`, and `@for` **requires** `track`. Migrate with `ng generate @angular/core:control-flow`.
-4. **Interceptors and guards.** ✏️ The class `HttpInterceptor` that reads `localStorage` is the old pattern and a bad place to keep a token. Modern apps use a functional `HttpInterceptorFn` registered with `withInterceptors()`, and functional `CanActivateFn` / `ResolveFn` guards. Class interceptors still work, but only via `withInterceptorsFromDi()` + `HTTP_INTERCEPTORS`.
-5. **Change detection.** ✏️ Since **v22**, omitting `changeDetection` means **OnPush**, not the old "check the whole tree" behavior. That old strategy is now named `ChangeDetectionStrategy.Eager` (`Default` remains an alias until v24). A raw `.subscribe()` that mutates a field does not refresh an OnPush view.
-6. **Signals timeline.** ✏️ Signals were a **developer preview in v16**, not a finished API. `input` / `output` / `model` and signal queries are stable since v19. `effect`, `linkedSignal`, `toSignal` and `toObservable` are stable since **v20**.
-7. **SSR.** ✏️ `ng add @nguniversal/express-engine` is obsolete. Since v17, SSR is `ng add @angular/ssr` plus `provideClientHydration()`. Incremental hydration is stable since v20.
-8. **Zoneless.** ➕ Experimental in v18, developer preview in v20 (`provideZonelessChangeDetection()`, renamed from `provideExperimentalZonelessChangeDetection`), **stable in v20.2**, and the **default for new applications in v21**. New apps do not ship `zone.js`.
-9. **v22 (June 2026, current major).** ➕ Signal Forms, `resource` / `httpResource`, and Angular Aria are stable. `@Service()` is the shorthand for a root singleton. OnPush is the default.
-10. **`providedIn: 'any'`** ✏️ is deprecated. It meant one instance per lazy injector, which is rarely what you want.
-11. **➕ Added** the 30-second summary, the version map, and traps. The "Vanguard" framing is an example of an enterprise that used Angular, not a claim about this role. **[confirm whether you have shipped Angular.]**
-
-## ➕ Say it in 30 seconds
-"Angular is a TypeScript framework: components, dependency injection, a router and forms, with RxJS for async streams. Modern Angular is standalone by default since v19, uses `@if` and `@for` instead of `*ngIf` and `*ngFor`, and keeps UI state in signals while HTTP stays an Observable, bridged with `toSignal`. Interceptors and guards are functions. Since v22, change detection is OnPush unless you opt into `Eager`, and since v21 new apps are zoneless, so `setTimeout` no longer triggers a refresh by itself. SSR is `@angular/ssr` with hydration, not the old Universal package. Signal Forms are the new forms API; `FormGroup` is still there. **[confirm if you have production Angular. This interview's stack is React.]**"
+## Say it in 1 minute
+"Angular is a TypeScript framework with components, dependency injection, a router, and forms, and RxJS is still how HTTP and other streams work. The version I would talk about is standalone by default, which has been true since v19, and the template uses @if and @for rather than the structural directives. UI state lives in signals. HTTP stays an Observable, and toSignal is the bridge when the template wants a signal. Interceptors and guards are functions, registered with the functional APIs. Change detection is OnPush unless you opt into Eager, as of v22, and since v21 a new app is zoneless, so a timer does not refresh the view by itself. Server rendering is the @angular/ssr package with hydration. Signal Forms are the new forms API, and FormGroup is still there for existing screens. **[confirm if you have production Angular. This interview's stack is React.]**"
 
 ---
 
@@ -29,31 +15,31 @@
 Angular is a **TypeScript-based frontend framework** for building scalable, enterprise-grade web applications.  
 It provides a full ecosystem: components, dependency injection, forms, routing, RxJS integration, testing tools, and build tooling.
 
-### Why Angular for a large product? ✏️
+### Why Angular for a large product? 
 
-✏️ The original heading said "like Vanguard". Angular is a common choice for large typed front ends. The stack for **this** interview is React + Spring ([react.md](../2-react-frontend/react.md)). **[confirm if you have shipped Angular, and where.]**
+Angular is a common choice for large typed front ends. The stack for **this** interview is React + Spring ([react.md](../2-react-frontend/react.md)). **[confirm if you have shipped Angular, and where.]**
 
 - **Strong typing** (TypeScript) → safer, maintainable code.
-- **Scalability** → ✏️ standalone components (NgModules are legacy), DI, NgRx when you actually need a global store.
-- **Performance** → ✏️ OnPush is the default since v22, plus signals, lazy loading, AOT, tree-shaking.
-- **Ecosystem** → i18n, a11y, ✏️ SSR via `@angular/ssr` (Angular Universal as a separate package is gone).
-- **Community & support** → large adoption in enterprises, a major about every six months. ➕ Current major: **Angular 22** (June 2026).
+- **Scalability** →  standalone components (NgModules are legacy), DI, NgRx when you actually need a global store.
+- **Performance** →  OnPush is the default since v22, plus signals, lazy loading, AOT, tree-shaking.
+- **Ecosystem** → i18n, a11y,  SSR via `@angular/ssr` (Angular Universal as a separate package is gone).
+- **Community & support** → large adoption in enterprises, a major about every six months.  Current major: **Angular 22** (June 2026).
 
 ### Core Building Blocks
 
 - **Components** → UI units with templates + logic.
-- **Directives** → extend HTML. ✏️ New code uses built-in `@if` / `@for` / `@switch`. `*ngIf` / `*ngFor` are the legacy structural directives. Custom attribute and structural directives still exist.
+- **Directives** → extend HTML.  New code uses built-in `@if` / `@for` / `@switch`. `*ngIf` / `*ngFor` are the legacy structural directives. Custom attribute and structural directives still exist.
 - **Pipes** → transform data in templates.
-- **Services** → singleton logic, injected. ➕ v22 adds `@Service()` as the shorthand for `@Injectable({ providedIn: 'root' })`.
+- **Services** → singleton logic, injected.  v22 adds `@Service()` as the shorthand for `@Injectable({ providedIn: 'root' })`.
 - **Dependency Injection** → hierarchical, flexible.
 - **Routing** → client-side navigation, guards, resolvers, lazy load.
-- **Forms** → ✏️ template-driven, reactive (`FormGroup`), and ➕ **Signal Forms** (stable in v22).
+- **Forms** →  template-driven, reactive (`FormGroup`), and **Signal Forms** (stable in v22).
 - **RxJS & Signals** → async streams + synchronous reactivity. See [rxjs.md](rxjs.md).
 
 ## What is tree-shaking in Angular
 
 - Tree-shaking is dead-code elimination during the build. The compiler looks at your imports and the application graph and drops functions, classes and modules that nothing reachable uses.
-- ✏️ **FIXED:** the original said this happens "through Webpack + Terser". Since **Angular 17** the default **application builder** bundles with **esbuild** (minification included) and the dev server is **Vite**. The Webpack builder, which did use Terser, is legacy and **deprecated in v22**. Tree-shaking still depends on real ESM `import`s. Side-effectful files and `providedIn` services that are injected somewhere are kept.
+- Since **Angular 17** the default **application builder** bundles with **esbuild** (minification included) and the dev server is **Vite**. The Webpack builder, which did use Terser, is legacy and **deprecated in v22**. Tree-shaking still depends on real ESM `import`s. Side-effectful files and `providedIn` services that are injected somewhere are kept.
 
 ---
 
@@ -69,7 +55,7 @@ It provides a full ecosystem: components, dependency injection, forms, routing, 
 
 - **Standalone components**: don’t need an NgModule. They declare their own `imports` (other components, directives, pipes) and can be bootstrapped directly. This reduces boilerplate and improves tree-shaking.
 - **NgModules**: group components, directives, and services into logical units. Still valid, often used in older projects or when grouping multiple features together.
-- ✏️ **FIXED (v19):** standalone is now the **default**. You do not write `standalone: true`. A component that must be declared in an NgModule sets `standalone: false`. `ng update` to v19 adds that flag for you and strips the redundant `standalone: true`. Importing `CommonModule` just to get `*ngIf` is the old habit. Built-in `@if` / `@for` need no import.
+- standalone is now the **default**. You do not write `standalone: true`. A component that must be declared in an NgModule sets `standalone: false`. `ng update` to v19 adds that flag for you and strips the redundant `standalone: true`. Importing `CommonModule` just to get `*ngIf` is the old habit. Built-in `@if` / `@for` need no import.
 
 **Code:**
 
@@ -79,7 +65,7 @@ bootstrapApplication(AppComponent, {
   providers: [provideRouter(routes), provideHttpClient()],
 });
 
-// app.component.ts — ✏️ no standalone: true since v19
+// app.component.ts —  no standalone: true since v19
 @Component({
   selector: "app-root",
   imports: [],
@@ -103,7 +89,7 @@ export class AppComponent {}
   - An input binding changed (`==`, not a deep compare, so a mutated object with the same reference does not count)
   - An event was handled in that component or one of its descendants
   - The view was marked, which is what the `async` pipe, `markForCheck()`, and a **signal read in the template** do
-- ✏️ **FIXED:** "an observable used in the template emits" is only true if that observable is consumed by the `async` pipe (or you mark the view yourself). A `.subscribe()` that writes a plain field does **not** refresh an OnPush component. ➕ **Since v22, OnPush is what you get when `changeDetection` is omitted.** The old always-check strategy is `ChangeDetectionStrategy.Eager`. `ChangeDetectionStrategy.Default` is the old name and stays as an alias until v24. `ng update` adds `Eager` where a component relied on the old default.
+- "an observable used in the template emits" is only true if that observable is consumed by the `async` pipe (or you mark the view yourself). A `.subscribe()` that writes a plain field does **not** refresh an OnPush component. **Since v22, OnPush is what you get when `changeDetection` is omitted.** The old always-check strategy is `ChangeDetectionStrategy.Eager`. `ChangeDetectionStrategy.Default` is the old name and stays as an alias until v24. `ng update` adds `Eager` where a component relied on the old default.
 
 **Code:**
 
@@ -115,7 +101,7 @@ export class AppComponent {}
       <li>{{ u.name }}</li>
     }
   `,
-  // ✏️ changeDetection can be omitted on v22 (OnPush is the default).
+  //  changeDetection can be omitted on v22 (OnPush is the default).
   // Set OnPush explicitly on v17–v21. Set Eager only if you depend on the old behavior.
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -125,7 +111,7 @@ export class UserListComponent {
 }
 ```
 
-**Takeaway:** OnPush (default since v22) plus the `async` pipe or a signal. The original sample set `standalone: true` and imported `CommonModule` for `*ngFor`. Neither is needed for this template anymore.
+**Takeaway:** OnPush (default since v22) plus the `async` pipe or a signal. This template doesn't need `standalone: true` or a `CommonModule` import.
 
 ---
 
@@ -137,7 +123,7 @@ export class UserListComponent {
 
 - **Signals**: _pull-based_, synchronous, great for local component state. Think of them as “reactive variables.” Reading `count()` both gets the value and tracks the dependency.
 - **RxJS Observables**: _push-based_, asynchronous, powerful for handling streams like HTTP, user input, or websockets. Nothing happens until `subscribe`.
-- ✏️ **FIXED timeline:** do not say "signals have been stable since v16". `signal` and `computed` came first. `input()`, `output()`, `model()` and signal queries are stable since **v19**. `effect`, `linkedSignal`, `toSignal` and `toObservable` are stable since **v20**. `resource` and `httpResource` (async work that exposes a signal) are stable since **v22**.
+- do not say "signals have been stable since v16". `signal` and `computed` came first. `input()`, `output()`, `model()` and signal queries are stable since **v19**. `effect`, `linkedSignal`, `toSignal` and `toObservable` are stable since **v20**. `resource` and `httpResource` (async work that exposes a signal) are stable since **v22**.
 
 They complement each other. Use signals for UI state, RxJS for streams and side effects. Derive state with `computed`, not `effect`.
 
@@ -180,7 +166,7 @@ form = fb.group({
 type FormValue = typeof this.form.value;
 ```
 
-**Takeaway:** Use **reactive forms** for complex, testable apps on Angular ≤ 21. ➕ **Signal Forms** (stable in v22, `@angular/forms/signals`) are the new API: the model is a writable signal, `form()` builds a field tree, and the template binds with `[formField]`. `FormGroup` was not removed.
+**Takeaway:** Use **reactive forms** for complex, testable apps on Angular ≤ 21. **Signal Forms** (stable in v22, `@angular/forms/signals`) are the new API: the model is a writable signal, `form()` builds a field tree, and the template binds with `[formField]`. `FormGroup` was not removed.
 
 ```ts
 import { Component, signal } from "@angular/core";
@@ -208,7 +194,7 @@ export class LoginComponent {
 - Always **type** your responses.
 - Use **interceptors** for authentication, logging, retry, and error handling.
 - Don’t scatter headers or error handling in components.
-- ✏️ **FIXED:** write a **functional** interceptor (`HttpInterceptorFn`) and register it with `withInterceptors([...])`. That function only accepts functions. A class `HttpInterceptor` registered there does not run. The original sample also read the token from `localStorage`, which any XSS can steal. Keep the access token in memory, or use an HttpOnly cookie and don't attach a header at all. Same fix as [jwt.md](../4-architecture-security/jwt.md).
+- write a **functional** interceptor (`HttpInterceptorFn`) and register it with `withInterceptors([...])`. That function only accepts functions. A class `HttpInterceptor` registered there does not run. Reading the token from `localStorage` lets any XSS steal it. Keep the access token in memory, or use an HttpOnly cookie and don't attach a header at all. Same fix as [jwt.md](../4-architecture-security/jwt.md).
 
 **Code:**
 
@@ -222,7 +208,7 @@ export class UserService {
   }
 }
 
-// ✏️ functional interceptor (current)
+//  functional interceptor (current)
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = inject(TokenStore).accessToken(); // in-memory, not localStorage
   const authReq = token
@@ -239,7 +225,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 // main.ts
 provideHttpClient(withInterceptors([authInterceptor]));
 
-// ✏️ class interceptor, only if you still have one:
+//  class interceptor, only if you still have one:
 // provideHttpClient(withInterceptorsFromDi()),
 // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
 ```
@@ -282,8 +268,8 @@ export const routes: Routes = [
 
 **Answer:**
 
-- **Parent → Child**: `@Input()`, or ➕ the signal `input()` / `input.required()` (stable since v19)
-- **Child → Parent**: `@Output()` EventEmitter, or ➕ `output()`
+- **Parent → Child**: `@Input()`, or  the signal `input()` / `input.required()` (stable since v19)
+- **Child → Parent**: `@Output()` EventEmitter, or  `output()`
 - **Across tree**: services with signals/Subjects, or NgRx for global state
 
 **Code:**
@@ -310,8 +296,8 @@ export class Child {
 
 **Answer:**
 
-- `providedIn: 'root'` → singleton across app. ➕ In v22, `@Service()` is the shorthand for this common case. `@Injectable` stays for anything that needs a `useFactory`, a scope, or constructor injection you want to spell out.
-- ✏️ `providedIn: 'any'` → **deprecated**. It created a new instance in each lazy-loaded injector, which surprised people. Prefer `root`, a route `providers` array, or the component `providers`.
+- `providedIn: 'root'` → singleton across app.  In v22, `@Service()` is the shorthand for this common case. `@Injectable` stays for anything that needs a `useFactory`, a scope, or constructor injection you want to spell out.
+-  `providedIn: 'any'` → **deprecated**. It created a new instance in each lazy-loaded injector, which surprised people. Prefer `root`, a route `providers` array, or the component `providers`.
 - Component-level `providers` → new instance for each component.
 
 **Code:**
@@ -362,9 +348,9 @@ export class Demo implements OnInit, OnDestroy {
 **Answer:**
 
 - CLI scaffolds code and builds with the application builder.
-- AOT (Ahead-of-Time) compiles templates at build time. ✏️ **AOT has been the default since Angular 9.** JIT is the exception (`@angular/compiler` in the browser), not what `ng build` does.
+- AOT (Ahead-of-Time) compiles templates at build time. **AOT has been the default since Angular 9.** JIT is the exception (`@angular/compiler` in the browser), not what `ng build` does.
 - Tree-shaking removes unused code.
-- ✏️ **FIXED:** Vite is the **dev server since v17**, not "v18+". Production bundling is **esbuild** via the application builder. Webpack is legacy and deprecated in v22.
+- Vite is the **dev server since v17**, not "v18+". Production bundling is **esbuild** via the application builder. Webpack is legacy and deprecated in v22.
 
 **Commands:**
 
@@ -386,17 +372,17 @@ ng test
 
 **Answer:**
 
-- ✏️ OnPush (the default since v22; set it explicitly only on older versions)
-- ✏️ `@for` with `track`, which is required. `trackBy` on `*ngFor` is the legacy form of the same idea: identity so DOM nodes are reused
+-  OnPush (the default since v22; set it explicitly only on older versions)
+-  `@for` with `track`, which is required. `trackBy` on `*ngFor` is the legacy form of the same idea: identity so DOM nodes are reused
 - Lazy load routes
 - Use pure pipes for caching
 - Break big components into smaller ones
-- ➕ `NgOptimizedImage` (`ngSrc`) for LCP images, and `@defer` for below-the-fold blocks
+-  `NgOptimizedImage` (`ngSrc`) for LCP images, and `@defer` for below-the-fold blocks
 
 **Code:**
 
 ```html
-<!-- ✏️ current -->
+<!--  current -->
 @for (item of items; track item.id) {
   <li>{{ item.name }}</li>
 } @empty {
@@ -717,7 +703,7 @@ loadUsers$ = createEffect(() =>
 **Code:**
 
 ```bash
-# ✏️ FIXED: @nguniversal/express-engine is the pre-v17 package. Don't add it.
+# `@nguniversal/express-engine` is the pre-v17 package. Don't add it.
 ng add @angular/ssr
 ```
 
@@ -728,7 +714,7 @@ ng add @angular/ssr
 provideClientHydration(withEventReplay());
 ```
 
-**Takeaway:** Use SSR + hydration for pages that must be crawlable or paint fast. ➕ Incremental hydration (stable in v20) hydrates `@defer` blocks as they become visible, instead of hydrating the whole page at once. Don't claim "Angular Universal" as a separate product.
+**Takeaway:** Use SSR + hydration for pages that must be crawlable or paint fast.  Incremental hydration (stable in v20) hydrates `@defer` blocks as they become visible, instead of hydrating the whole page at once. Don't claim "Angular Universal" as a separate product.
 
 ---
 
@@ -745,7 +731,7 @@ provideClientHydration(withEventReplay());
 **Code:**
 
 ```ts
-// ✏️ NgModule style, legacy:
+//  NgModule style, legacy:
 // RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules });
 
 // current, in bootstrapApplication providers:
@@ -826,7 +812,7 @@ export const authGuard: CanActivateFn = () =>
   !!inject(AuthService).isLoggedIn();
 ```
 
-**Takeaway:** Guards = **access control**, Resolvers = **data prefetch**. ✏️ These function types (`CanActivateFn`, `ResolveFn`) are the current API. The class interfaces (`implements CanActivate`) are the legacy form. A guard that only redirects, and a resolver that only loads data the page could have loaded itself, are both overhead. Prefer loading in the component with a signal or `httpResource` unless the data must exist before the route activates.
+**Takeaway:** Guards = **access control**, Resolvers = **data prefetch**.  These function types (`CanActivateFn`, `ResolveFn`) are the current API. The class interfaces (`implements CanActivate`) are the legacy form. A guard that only redirects, and a resolver that only loads data the page could have loaded itself, are both overhead. Prefer loading in the component with a signal or `httpResource` unless the data must exist before the route activates.
 
 ---
 
@@ -897,7 +883,7 @@ Standalone components can be lazy-loaded directly with `loadComponent`.
 
 ```
 /src/app
-  /listings          # ✏️ example name only. The original said "rollovers" (a Vanguard domain). The point is the feature folder.
+  /listings          #  feature folder
     listing.component.ts
     listing.service.ts
     listing.routes.ts
@@ -934,11 +920,11 @@ export class GlobalErrorHandler implements ErrorHandler {
   }
 }
 
-// ✏️ standalone bootstrap, not an NgModule
+//  standalone bootstrap, not an NgModule
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
-    provideBrowserGlobalErrorListeners(), // ➕ v20: window error + unhandledrejection
+    provideBrowserGlobalErrorListeners(), //  v20: window error + unhandledrejection
   ],
 });
 ```
@@ -957,7 +943,7 @@ Interceptors run in **order of registration**. The first one sees the outgoing r
 **Code:**
 
 ```ts
-// ✏️ current: array order is the chain
+//  current: array order is the chain
 provideHttpClient(withInterceptors([authInterceptor, loggingInterceptor]));
 
 // legacy class chain (multi: true is required or only the last provider survives)
@@ -1083,7 +1069,7 @@ fetch("/assets/config.json")
 
 **Answer:**
 
-- ✏️ **Standalone:** `ng update` to v19 flips the default. New components are standalone without a flag. Existing NgModule components get `standalone: false`. The old "add `standalone: true` one file at a time" advice is the pre-v19 migration.
+- **Standalone:** `ng update` to v19 flips the default. New components are standalone without a flag. Existing NgModule components get `standalone: false`. The old "add `standalone: true` one file at a time" advice is the pre-v19 migration.
 - **RxJS:** pipeable operators, and `firstValueFrom` / `lastValueFrom` instead of `toPromise` (deprecated in RxJS 7). Details in [rxjs.md](rxjs.md).
 - **Control flow:** `ng generate @angular/core:control-flow`.
 - **Angular upgrade:** follow official `ng update` schematics, one major at a time. Don't skip majors.
@@ -1109,9 +1095,9 @@ fetch("/assets/config.json")
 
 ---
 
-# ➕ Angular — what changed after these notes were written
+# More Angular topics
 
-The 40 questions above are the original set, corrected in place. These four cover the gaps an interviewer actually asks in 2026.
+These four cover the gaps an interviewer actually asks in 2026.
 
 ## 41) Built-in control flow (`@if`, `@for`, `@switch`)
 
@@ -1198,7 +1184,7 @@ listing = httpResource<Listing>(() => `/api/listings/${this.selectedId()}`);
 
 ---
 
-# ➕ Traps and gotchas
+# Traps and gotchas
 
 - `withInterceptors([AuthInterceptorClass])` does nothing useful. That array is functions only. Class interceptors need `withInterceptorsFromDi()` and `HTTP_INTERCEPTORS` with `multi: true`.
 - A bearer token in `localStorage` or `sessionStorage` is readable by any XSS. Memory, or an HttpOnly cookie. See [storage-security.md](../4-architecture-security/storage-security.md).
@@ -1208,5 +1194,5 @@ listing = httpResource<Listing>(() => `/api/listings/${this.selectedId()}`);
 - Declaring a component in an NgModule without `standalone: false` fails, because standalone is the default. The error is "is standalone, and cannot be declared in an NgModule".
 - `effect()` to copy one signal into another. That is `computed` or `linkedSignal`. `effect` is for side effects you can justify.
 - `toSignal(obs$)` without `initialValue` has type `T | undefined` until the first emit, and an erroring observable throws when the signal is read.
-- `ng add @nguniversal/express-engine`, `providedIn: 'any'`, and "Vite arrived in v18" are all out of date. See the changelog at the top.
+- `ng add @nguniversal/express-engine`, `providedIn: 'any'`, and "Vite arrived in v18" are all out of date.
 - Zone.js and zoneless in the same answer without saying which version. New apps since v21 are zoneless. A long-lived enterprise app may still be on Zone until someone migrates it.

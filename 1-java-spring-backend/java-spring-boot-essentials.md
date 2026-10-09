@@ -2,8 +2,8 @@
 
 > Group 1 · Priority HIGH · Prep guide Q14–16 · Status: new file
 
-## Say it in 30 seconds
-"Spring Boot is Spring with auto-configuration, starters and an embedded server, so a service is one runnable jar. The core is the IoC container: I declare beans with `@Service`, `@Repository` and `@RestController`, and inject them through the constructor. A request goes through a thin controller that validates a DTO, a service that holds the business logic and the transaction, and a Spring Data repository. Errors are mapped once in a `@RestControllerAdvice` that returns `ProblemDetail`. My daily backend is NestJS, which copies this model (modules, providers, DI, decorators, guards), so Spring feels familiar. A real example of my full-stack work: the OneHome Favorites/sentiments feature, with one filtered endpoint, an Elasticsearch read model fed by Kafka, and sync back to an external MLS (story below)."
+## Say it in 1 minute
+"Spring Boot is Spring with auto-configuration, starters, and an embedded server, so a service is one runnable jar. The IoC container is the core. I declare beans with Service, Repository, and RestController, and I inject them through the constructor, so a unit test can pass fakes without starting the container. A request goes through a thin controller that validates a DTO, a service that holds the rules and the transaction, and a Spring Data repository. Errors are mapped once in a RestControllerAdvice that returns ProblemDetail. My daily backend is NestJS, with modules, providers, decorators, and guards, so the Spring shape feels familiar. The full-stack example is OneHome Favorites and sentiments: one filtered endpoint, an Elasticsearch read model fed by Kafka, and a sync back to an external MLS. That story is just below."
 
 ---
 

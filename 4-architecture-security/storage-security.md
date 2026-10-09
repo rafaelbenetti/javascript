@@ -1,17 +1,9 @@
 # 🔐 Web Security & Auth Prep Guide
 
-> Group 4 · Corrected version of the former `STORAGE-SECURITY.md` · Priority MEDIUM
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 4 · Priority MEDIUM
 
-## What was fixed (changelog)
-1. **✏️ Cookie example was wrong**: `document.cookie = "token=abc123; Secure; HttpOnly; SameSite=Strict"` **can't** create an HttpOnly cookie. Browsers ignore cookies set from JS with the `HttpOnly` attribute. HttpOnly cookies can only come from the server's `Set-Cookie` header, and that's the whole point (JS can't read them). Replaced with server-side examples (Express and Spring).
-2. **✏️ Q1** clarified: `SameSite=Lax` (the default when unset in Chromium browsers; Firefox and Safari differ) already blocks most cross-site POSTs, but CSRF tokens are still recommended for state-changing requests.
-3. **✏️ OAuth/OIDC** wording tightened (OAuth 2.0 delegates authorisation. OIDC adds authentication: who the user is).
-4. **✏️ MFA**: added passkeys/WebAuthn as the phishing-resistant option.
-5. **➕ Added**: cookie attribute table, `__Host-` prefix, IndexedDB, Spring examples, 30-second summary and traps.
-
-## ➕ Say it in 30 seconds
-"Cookies are sent automatically with requests and can be made HttpOnly, Secure and SameSite, but only by the server. localStorage and sessionStorage are readable by any script, so an XSS bug can steal anything in them, and they're for preferences, never tokens. Authentication is proving who you are (password plus MFA, ideally passkeys). Authorisation is what you can do: RBAC for roles, ABAC or ownership checks for fine-grained rules, enforced on the server. For a React + Spring app I'd use OIDC with an HttpOnly cookie session or a BFF, CSRF protection, and per-request authorisation in the API. On OneHome, consumers and agents even have different permissions on the same feature: consumers set like and dislike, agents set recommend and exclude."
+## Say it in 1 minute
+"Cookies go out with the request, and only the server can mark them HttpOnly, Secure, and SameSite. A script cannot set HttpOnly. localStorage and sessionStorage are readable by any script, so XSS steals a token stored there. They are fine for a theme. Authentication proves who you are: a password plus a second factor, ideally a passkey. Authorisation is what you may do. RBAC covers roles, and an ownership check covers the row. Both run on the server. For React and Spring I would use OIDC, an HttpOnly cookie session or a backend-for-frontend, CSRF protection on cookie-authenticated writes, and a check on every request. On OneHome, consumers and agents do not share permissions: consumers set like and dislike, and agents set recommend and exclude."
 
 
 ---
@@ -25,10 +17,10 @@
 - **Pros:** Works across tabs, automatically sent to server.
 - **Cons:** Limited storage (~4KB), security risks (XSS/CSRF if not `HttpOnly` or `SameSite`).
 
-**✏️ FIXED code example:**
+**Code example:**
 
 ```js
-// ❌ WRONG (original): JS cannot set HttpOnly. The browser ignores this cookie.
+// ❌ WRONG: JS cannot set HttpOnly. The browser ignores this cookie.
 // document.cookie = "token=abc123; Secure; HttpOnly; SameSite=Strict";
 
 // ✅ Non-sensitive cookie from JS (readable by JS, so never a token):
@@ -47,7 +39,7 @@ ResponseCookie cookie = ResponseCookie.from("__Host-session", sessionId)
 response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 ```
 
-**➕ Cookie attributes**
+**Cookie attributes**
 | Attribute | Effect |
 |---|---|
 | `HttpOnly` | JS can't read it (blocks token theft via XSS). **Server-only** |
@@ -66,7 +58,7 @@ response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 - **Definition:** Browser-based key/value storage. Persistent (survives page reload & browser restart).
 - **Capacity:** ~5–10 MB.
 - **Use cases:** Save user preferences, caching, feature flags.
-- **Cons:** Accessible via JS → vulnerable to XSS. Never store sensitive tokens. ➕ Synchronous API (blocks the main thread), strings only, shared per origin across tabs (the `storage` event syncs tabs).
+- **Cons:** Accessible via JS → vulnerable to XSS. Never store sensitive tokens.  Synchronous API (blocks the main thread), strings only, shared per origin across tabs (the `storage` event syncs tabs).
 
 **Code example:**
 
@@ -92,7 +84,7 @@ const step = sessionStorage.getItem("step");
 
 ---
 
-### ➕ IndexedDB / Cache Storage
+### IndexedDB / Cache Storage
 - Async, large, structured storage (offline apps, PWA caches). It's also JS-accessible, so the same XSS caveat applies.
 
 ---
@@ -121,7 +113,7 @@ const step = sessionStorage.getItem("step");
 
 - **Definition:** Combining two or more authentication factors (knowledge, possession, inherence/biometric).
 - **Examples:** Password + SMS OTP, Password + Authenticator app, Password + Fingerprint.
-- **Best practices:** Prefer TOTP apps (Google Authenticator) or hardware keys (WebAuthn) over SMS. ✏️ **Passkeys (WebAuthn/FIDO2)** are phishing-resistant and increasingly replace passwords entirely.
+- **Best practices:** Prefer TOTP apps (Google Authenticator) or hardware keys (WebAuthn) over SMS. **Passkeys (WebAuthn/FIDO2)** are phishing-resistant and increasingly replace passwords entirely.
 
 ---
 
@@ -137,7 +129,7 @@ const step = sessionStorage.getItem("step");
   4. Browser sends cookie automatically with each request.
   5. Server validates session ID → grants access.
 
-  ➕ Diagram (moved from the old `src/assets/`): ![Cookies + session authorization](assets/cookies-session-authorization.png)
+   ![Cookies + session authorization](assets/cookies-session-authorization.png)
 
 - **Pros:** Secure if cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
 - **Cons:** Doesn’t scale well in distributed systems unless sessions are shared (Redis).
@@ -165,7 +157,7 @@ app.post("/login", (req, res) => {
 - **Examples:** `Admin`, `Manager`, `Employee`.
 - **Pros:** Simple, easy to manage.
 - **Cons:** Not fine-grained.
-- **➕ Real example:** on OneHome's Favorites feature the **consumer** sets like/dislike and the **agent** sets recommend/exclude, and both can view all four. That's a role-based write rule the API must enforce. The UI hiding the buttons isn't enough.
+- **Real example:** on OneHome's Favorites feature the **consumer** sets like/dislike and the **agent** sets recommend/exclude, and both can view all four. That's a role-based write rule the API must enforce. The UI hiding the buttons isn't enough.
 
 **Code example:**
 
@@ -177,7 +169,7 @@ if (user.role === "admin") {
 }
 ```
 ```java
-// ➕ Spring: roles + ownership (RBAC alone doesn't stop IDOR)
+//  Spring: roles + ownership (RBAC alone doesn't stop IDOR)
 @PreAuthorize("hasRole('AGENT')")
 public void recommend(Long listingId, Long consumerId) { ... }
 
@@ -214,9 +206,9 @@ public List<Favorite> myFavorites(String userId) { ... }
 ### OAuth 2.0 / OpenID Connect
 
 - **Definition:** Authorization & authentication standards.
-- **OAuth 2.0:** Delegates access (e.g., “Allow app X to access Google Calendar”). ✏️ It issues **access tokens**. It isn't an authentication protocol by itself.
-- **OIDC:** Extends OAuth2 with identity (who the user is). ✏️ Adds the **ID token** (always a JWT) and a `userinfo` endpoint.
-- **➕ For SPAs:** Authorization Code flow **with PKCE** (the implicit flow is deprecated in OAuth 2.1 / current best practice). Or a BFF that does the code flow server-side.
+- **OAuth 2.0:** Delegates access (e.g., “Allow app X to access Google Calendar”).  It issues **access tokens**. It isn't an authentication protocol by itself.
+- **OIDC:** Extends OAuth2 with identity (who the user is).  Adds the **ID token** (always a JWT) and a `userinfo` endpoint.
+- **For SPAs:** Authorization Code flow **with PKCE** (the implicit flow is deprecated in OAuth 2.1 / current best practice). Or a BFF that does the code flow server-side.
 - **Pros:** Widely used, standardized.
 - **Cons:** Misconfiguration can lead to vulnerabilities.
 
@@ -251,7 +243,7 @@ public List<Favorite> myFavorites(String userId) { ... }
 - **Cookies (HttpOnly, Secure, SameSite):** safer against XSS, but need CSRF protection.
 - **LocalStorage:** vulnerable to XSS, should be avoided for sensitive tokens.
 - **Best practice:** Use **HttpOnly cookies** + CSRF tokens.
-- ✏️ **Nuance:** `SameSite=Lax` (set explicitly; Chromium also defaults to it) already blocks cookies on most cross-site POSTs, which removes most CSRF. But it's defence in depth: keep CSRF tokens for state-changing requests (Spring Security enables them by default for session apps), and remember same-site subdomains aren't "cross-site". Keeping tokens in memory plus a refresh HttpOnly cookie, or a BFF, are also good options.
+- **Nuance:** `SameSite=Lax` (set explicitly; Chromium also defaults to it) already blocks cookies on most cross-site POSTs, which removes most CSRF. But it's defence in depth: keep CSRF tokens for state-changing requests (Spring Security enables them by default for session apps), and remember same-site subdomains aren't "cross-site". Keeping tokens in memory plus a refresh HttpOnly cookie, or a BFF, are also good options.
 
 ---
 
@@ -338,13 +330,13 @@ public List<Favorite> myFavorites(String userId) { ... }
 
 - Use **JWTs** or **OAuth2 access tokens** for stateless authentication across services.
 - Centralize identity provider (IdP) like **Keycloak / Auth0**.
-- Use **service-to-service authentication** (mTLS, API keys). ➕ Prefer OAuth2 **client credentials** tokens or workload identity (IAM roles) over static API keys.
-- ➕ Authorise per request in each service (zero trust). Don't rely on the gateway alone.
+- Use **service-to-service authentication** (mTLS, API keys).  Prefer OAuth2 **client credentials** tokens or workload identity (IAM roles) over static API keys.
+-  Authorise per request in each service (zero trust). Don't rely on the gateway alone.
 
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - Setting `HttpOnly` from `document.cookie`: impossible (see the fix above).
 - Tokens in localStorage "because it's easier".
 - `SameSite=None` without `Secure` gets rejected by browsers.

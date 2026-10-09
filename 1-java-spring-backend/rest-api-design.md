@@ -2,8 +2,8 @@
 
 > Group 1 · Priority MEDIUM · Prep guide Q16, Q20 · Status: new file
 
-## Say it in 30 seconds
-"I design APIs contract-first around resources: plural nouns, HTTP verbs with their real semantics, correct status codes, and one consistent error format (ProblemDetail). GET, PUT and DELETE are idempotent. For POSTs that create money-moving or duplicate-prone things I use an idempotency key. Lists are paginated, filterable and sortable. I version through the URL or a header and only make additive changes within a version. The contract lives in OpenAPI, and on Benwer Cars I generated typed TypeScript clients from it, so a backend change that broke the front end failed at compile time instead of in production. A real design call from EPAM: for OneHome's 4 favourite sentiments I used one endpoint filtered by sentiment type, not four endpoints."
+## Say it in 1 minute
+"I design APIs contract-first, around resources. Paths are plural nouns, the HTTP method carries the meaning, and the status code says what happened. Errors share one shape, ProblemDetail, so the front end parses them in one place. GET, PUT, and DELETE are idempotent. POST is not, so anything that can be retried gets an idempotency key. Lists are paginated, filterable, and sortable, and I use a keyset once offset would get deep. I version with the URL or a header, and inside a version I only add fields. The contract lives in OpenAPI. On Benwer Cars I generated typed TypeScript clients from that spec, so a breaking change failed the front-end build. From EPAM: OneHome has four favourite sentiments, and I exposed one endpoint filtered by type instead of four near-duplicate routes."
 
 ---
 

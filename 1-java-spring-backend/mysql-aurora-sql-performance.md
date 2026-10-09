@@ -3,8 +3,8 @@
 > Group 1 · Priority MEDIUM · Prep guide Q25 · Status: new file
 > Honest framing: Rafael's production SQL is mainly PostgreSQL (Benwer Cars with Drizzle). The concepts transfer, and the MySQL-specific points are marked.
 
-## Say it in 30 seconds
-"For a slow query I measure first: the slow query log or APM finds it, and `EXPLAIN` / `EXPLAIN ANALYZE` shows whether it's scanning. Usually the fix is the right index: composite with the equality columns first, covering where possible. Also don't wrap indexed columns in functions, avoid `SELECT *`, use keyset pagination instead of deep OFFSET, and fix N+1 at the ORM level. Aurora MySQL is AWS's MySQL-compatible engine, with storage replicated six ways across three availability zones, up to 15 low-lag read replicas behind a reader endpoint, and fast failover. My hands-on SQL is mostly Postgres, but indexing and query plans work the same way."
+## Say it in 1 minute
+"When a query is slow I measure first. The slow query log or APM names the statement, and EXPLAIN or EXPLAIN ANALYZE shows a scan versus an index. The usual fix is a better index: equality columns first in a composite, and a covering index when the query can be answered from the index alone. I keep predicates sargable, avoid wrapping an indexed column in a function, skip SELECT star, and paginate with a keyset instead of a deep OFFSET. N+1 is an ORM problem. Aurora MySQL is the engine I would expect here: storage copied six ways across three availability zones, up to 15 low-lag readers on a reader endpoint, and fast failover. My day-to-day SQL has been Postgres, on Benwer Cars with Drizzle, and indexing plus reading a plan transfer straight across."
 
 ---
 

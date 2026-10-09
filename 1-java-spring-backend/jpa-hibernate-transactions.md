@@ -2,8 +2,8 @@
 
 > Group 1 · Priority HIGH · Prep guide Q17 · Status: new file
 
-## Say it in 30 seconds
-"JPA is the spec and Hibernate is the implementation. Entities map to tables, and Spring Data gives me repositories with derived queries. The two things that bite in production are fetching and transactions. Relations should be lazy, and when I list parents with their children I fetch them in one query with `JOIN FETCH` or an `@EntityGraph`, otherwise I get the N+1 problem. `@Transactional` goes on the service layer. It works through a proxy, so self-calls bypass it, and by default it rolls back only on unchecked exceptions. I've used ORMs heavily (Drizzle on Benwer Cars), and the same N+1 and transaction concerns apply."
+## Say it in 1 minute
+"JPA is the specification, and Hibernate is the implementation. Entities map onto tables, and Spring Data turns a method name into a query. The two things that hurt in production are fetching and transactions. I keep associations lazy, and when a screen needs parents with their children I load them in one query with JOIN FETCH or an EntityGraph. Otherwise each parent fires another select and you get the N+1 problem. @Transactional belongs on the service. Spring applies it with a proxy, so a call from inside the same class skips it, and by default only unchecked exceptions roll the work back. I have lived with the same questions on Benwer Cars using Drizzle: the ORM does not pick the query plan or the transaction boundary for you."
 
 ---
 

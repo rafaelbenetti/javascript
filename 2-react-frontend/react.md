@@ -1,23 +1,10 @@
 # ⚛️ React Interview Prep — Overview + Top 40 Q&A
 
-> Group 2 · Corrected version of the former `REACT.md` · Priority HIGH
-> Legend: **✏️ FIXED** = original text corrected · **➕ ADDED** = new content · unmarked = original
+> Group 2 · Priority HIGH
 > Deep dives: `react-testing-jest-rtl.md`, `accessibility-responsive.md`, `typescript.md`
 
-## What was fixed (changelog)
-1. **Q6 props vs state**: the table said props changes cause **no** re-render. That's wrong: a new prop value from a re-rendering parent re-renders the child.
-2. **Q2 Virtual DOM**: added the nuance that VDOM isn't automatically "high performance".
-3. **Q16**: the `useState` "merges by replace semantics" wording was confusing. The setter replaces and doesn't merge.
-4. **Q17**: `useEffect` timing nuance.
-5. **Q25**: error boundaries are still class-only in React 19.
-6. **Q27/28**: modern Redux = Redux Toolkit / RTK Query.
-7. **Q33/34**: `getServerSideProps`/`getStaticProps` are Next.js **Pages Router** APIs. The App Router uses Server Components.
-8. **Q36 testing**: expanded (queries by role, `userEvent`, async, mocking).
-9. **Q39**: replaced "React 18+ / emerging" with **React 19** (stable since Dec 2024) and **React Compiler 1.0** (stable since Oct 2025).
-10. **➕ Added** Q41–Q46 (React 19 Actions, `use`, Compiler, a11y, data fetching, the OneHome performance story), the 30-second summary and a traps section.
-
-## ➕ Say it in 30 seconds
-"React is a declarative, component-based UI library. Components are functions of props and state, and React re-renders when state, props or context change, then reconciles the result to the DOM. I use hooks for state and effects, keep state close to where it's used, put server data in React Query, and only memoise what the profiler shows is slow. React 19 adds Actions, `useActionState`, `useOptimistic` and `use`, and `ref` is now a regular prop. The React Compiler auto-memoises, so manual `useMemo`/`useCallback` matters less. On OneHome I made search and listing pages about 40% faster by measuring first, then fixing image sizing and lazy loading, cutting first-load JS, and removing wasted renders."
+## Say it in 1 minute
+"React is a declarative, component-based UI library. A component is a function of props and state. It re-renders when state, props, or context change, then reconciles onto the DOM. A child re-renders with its parent unless it is memoised. I keep state close to where it is used, put server data in React Query, and memoise only what the profiler shows is slow. React 19 is the version I would talk about: Actions, useActionState, useOptimistic, and use, and ref is a normal prop. The React Compiler memoises for you, so hand-written useMemo and useCallback matter less. On OneHome I made search and listing pages about 40 percent faster by measuring first, then fixing image sizing and lazy loading, cutting first-load JavaScript, and removing renders that did no work."
 
 
 ---
@@ -72,7 +59,7 @@
   2. Diffs it against the previous tree.
   3. Applies the minimal changes to the real DOM.
 - Result: **fewer DOM operations** → better performance.
-- **✏️ FIXED (nuance):** the VDOM isn't free. Diffing costs CPU, and hand-written DOM updates can be faster. Its real value is a **declarative model with "good enough" updates**. Big wins come from rendering less (state colocation, memoisation, virtualisation) and shipping less JS.
+- the VDOM isn't free. Diffing costs CPU, and hand-written DOM updates can be faster. Its real value is a **declarative model with "good enough" updates**. Big wins come from rendering less (state colocation, memoisation, virtualisation) and shipping less JS.
 
 ---
 
@@ -129,8 +116,8 @@ const [count, setCount] = useState(0);
 | Mutability | Immutable           | Mutable via setters |
 | Purpose    | Configure component | Store UI data       |
 
-> **✏️ FIXED:** the original said props cause **no** re-render. A child re-renders whenever its parent re-renders (even with identical props), unless it's wrapped in `React.memo` and its props are shallow-equal. Props are read-only *for the child*, but they change over time.
-| Re-render  | ✏️ **Yes**, when the parent re-renders with new prop values | Yes (when set to a new value) |
+> A child re-renders whenever its parent re-renders (even with identical props), unless it's wrapped in `React.memo` and its props are shallow-equal. Props are read-only *for the child*, but they change over time.
+| Re-render  | **Yes**, when the parent re-renders with new prop values | Yes (when set to a new value) |
 
 ---
 
@@ -250,7 +237,7 @@ function Toolbar() {
 
 **Core:**
 
-- ✏️ `useState(initial)` – local state. The setter **replaces** the value and does **not** merge objects (unlike class `setState`), so spread it yourself: `setForm(f => ({ ...f, name }))`. Use the updater form when the next value depends on the previous one.
+-  `useState(initial)` – local state. The setter **replaces** the value and does **not** merge objects (unlike class `setState`), so spread it yourself: `setForm(f => ({ ...f, name }))`. Use the updater form when the next value depends on the previous one.
 - `useEffect(fn, deps?)` – side effects after paint; cleanup by returning a function.
 - `useContext(ctx)` – read nearest Provider value.
 - `useRef(init)` – mutable ref object `{ current }`; persists across renders.
@@ -278,8 +265,8 @@ function Toolbar() {
 | Use for  | Data fetching, subscriptions   | DOM reads/writes, measurement    |
 | Pitfall  | UI may flicker for layout work | Can hurt performance if overused |
 
-- **➕ Nuance:** `useEffect` normally runs after paint, but effects triggered by a discrete user input (click, keypress) may flush synchronously before paint. In Strict Mode (dev), React runs mount → unmount → mount to surface missing cleanups.
-- **➕ "You might not need an effect":** don't use effects to derive state from props/state (compute during render) or to respond to events (do it in the handler).
+- **Nuance:** `useEffect` normally runs after paint, but effects triggered by a discrete user input (click, keypress) may flush synchronously before paint. In Strict Mode (dev), React runs mount → unmount → mount to surface missing cleanups.
+- **"You might not need an effect":** don't use effects to derive state from props/state (compute during render) or to respond to events (do it in the handler).
 
 ---
 
@@ -388,7 +375,7 @@ class ErrorBoundary extends React.Component {
 ```
 
 - For function components use libraries like `react-error-boundary`.
-- **✏️ Still true in React 19:** there's no hook equivalent. Error boundaries don't catch errors in event handlers, async code or SSR, so handle those with try/catch. React 19 adds `onCaughtError`/`onUncaughtError` root options for logging.
+- **Still true in React 19:** there's no hook equivalent. Error boundaries don't catch errors in event handlers, async code or SSR, so handle those with try/catch. React 19 adds `onCaughtError`/`onUncaughtError` root options for logging.
 
 ---
 
@@ -416,7 +403,7 @@ const Profile = React.lazy(() => import("./Profile"));
 | Performance | Optimized via selectors & connect          | May re-render many consumers     |
 | Tooling     | Excellent DevTools                         | Minimal                          |
 
-- **➕ Modern Redux = Redux Toolkit** (`configureStore`, `createSlice`, Immer). Hand-written action types and switch reducers are legacy. For server data, prefer **TanStack Query / RTK Query** over storing fetched data in Redux. Lightweight alternatives: Zustand, Jotai.
+- **Modern Redux = Redux Toolkit** (`configureStore`, `createSlice`, Immer). Hand-written action types and switch reducers are legacy. For server data, prefer **TanStack Query / RTK Query** over storing fetched data in Redux. Lightweight alternatives: Zustand, Jotai.
 
 ---
 
@@ -431,7 +418,7 @@ export const fetchUsers = () => async (dispatch) => {
   dispatch({ type: "SET_USERS", payload: await res.json() });
 };
 ```
-- **➕** In RTK this is `createAsyncThunk`, or better, an RTK Query endpoint that handles caching, loading and error states for you.
+- In RTK this is `createAsyncThunk`, or better, an RTK Query endpoint that handles caching, loading and error states for you.
 
 ---
 
@@ -504,7 +491,7 @@ const withLogger = (Comp) => (props) => {
 
 - Render HTML on the server for faster FCP and SEO.
 - Implemented via frameworks like **Next.js**.
-- **✏️ FIXED:** `getServerSideProps` is the **Pages Router** API (legacy style). In the **App Router**, components are **Server Components** by default and fetch data directly (`async function Page() { const data = await fetch(...) }`), with caching and revalidation controlled per fetch or route. **Hydration** attaches event handlers to server HTML on the client.
+- `getServerSideProps` is the **Pages Router** API (legacy style). In the **App Router**, components are **Server Components** by default and fetch data directly (`async function Page() { const data = await fetch(...) }`), with caching and revalidation controlled per fetch or route. **Hydration** attaches event handlers to server HTML on the client.
 
 ---
 
@@ -512,7 +499,7 @@ const withLogger = (Comp) => (props) => {
 
 - Pre-render pages at **build time** for speed and caching.
 - **Incremental Static Regeneration (ISR)** updates pages post-build (Next.js).
-- **✏️** Pages Router: `getStaticProps` + `revalidate`. App Router: `export const revalidate = 60` or `fetch(url, { next: { revalidate: 60 } })`.
+- Pages Router: `getStaticProps` + `revalidate`. App Router: `export const revalidate = 60` or `fetch(url, { next: { revalidate: 60 } })`.
 
 ---
 
@@ -537,7 +524,7 @@ test("greets", () => {
 });
 ```
 
-- **✏️ Expanded:** query like a user. Prefer `getByRole('button', { name: /save/i })` over `getByTestId`. Use `userEvent` (async) for interactions, `findBy*`/`waitFor` for async UI, and mock the network with MSW or `jest.mock`. **Test behaviour, not implementation** (no checking state or internal methods).
+- **Expanded:** query like a user. Prefer `getByRole('button', { name: /save/i })` over `getByTestId`. Use `userEvent` (async) for interactions, `findBy*`/`waitFor` for async UI, and mock the network with MSW or `jest.mock`. **Test behaviour, not implementation** (no checking state or internal methods).
 
 ```jsx
 import userEvent from "@testing-library/user-event";
@@ -575,10 +562,10 @@ test("submits the form", async () => {
 
 ---
 
-### 39) ✏️ What’s new in React 18 and 19?
+### 39)  What’s new in React 18 and 19?
 
 - **React 18:** automatic batching, Transitions (`useTransition`), improved Suspense, streaming SSR, `createRoot`.
-- **✏️ React 19 (stable Dec 2024; 19.1/19.2 in 2025):**
+- **React 19 (stable Dec 2024; 19.1/19.2 in 2025):**
   - **Actions**: async functions in transitions. `<form action={fn}>` handles pending state, errors and reset.
   - **`useActionState`** (form state and pending), **`useFormStatus`** (pending state for a child of a form), **`useOptimistic`** (instant UI, rolled back on failure).
   - **`use(promise | context)`**: read a promise (suspends) or context, even conditionally.
@@ -586,7 +573,7 @@ test("submits the form", async () => {
   - `<title>`, `<meta>` and `<link>` rendered anywhere are hoisted to `<head>`. Stylesheet and preload APIs.
   - **Server Components and Server Actions** are stable (used through frameworks like Next.js).
   - 19.2: `<Activity>` (hide or keep UI state offscreen), `useEffectEvent`.
-- **✏️ React Compiler 1.0** (stable Oct 2025): a build-time tool that auto-memoises components and hooks, so most manual `useMemo`/`useCallback`/`React.memo` becomes unnecessary. It requires following the Rules of React.
+- **React Compiler 1.0** (stable Oct 2025): a build-time tool that auto-memoises components and hooks, so most manual `useMemo`/`useCallback`/`React.memo` becomes unnecessary. It requires following the Rules of React.
 
 ---
 
@@ -598,7 +585,7 @@ test("submits the form", async () => {
 
 ---
 
-### ➕ 41) What are Actions and `useActionState` (React 19)?
+### 41) What are Actions and `useActionState` (React 19)?
 
 ```jsx
 function NewListingForm() {
@@ -621,7 +608,7 @@ function NewListingForm() {
 
 ---
 
-### ➕ 42) `useOptimistic` example (favourite a listing)
+### 42) `useOptimistic` example (favourite a listing)
 
 ```jsx
 const [optimisticFav, setOptimisticFav] = useOptimistic(isFav);
@@ -635,7 +622,7 @@ async function toggle() {
 
 ---
 
-### ➕ 43) What does the React Compiler change for interviews?
+### 43) What does the React Compiler change for interviews?
 
 - It memoises automatically at build time, so "wrap everything in `useCallback`" is no longer the advice.
 - You still need to understand **why** re-renders happen, the **Rules of React** (pure render, no mutating props/state, hooks at the top level) and **profiling**.
@@ -643,7 +630,7 @@ async function toggle() {
 
 ---
 
-### ➕ 44) How do you fetch data in a modern React app?
+### 44) How do you fetch data in a modern React app?
 
 - **Client SPA:** TanStack Query (React Query) for caching, dedupe, retries, background refetch, invalidation after mutations, and optimistic updates. Avoid `useEffect` + `fetch` by hand (race conditions, no cache).
 - **Framework (Next.js App Router):** Server Components fetch on the server, with Suspense streaming.
@@ -651,14 +638,14 @@ async function toggle() {
 
 ---
 
-### ➕ 45) How do you make React components accessible?
+### 45) How do you make React components accessible?
 
 - Semantic elements first (`<button>`, not `<div onClick>`), labels tied to inputs (`useId` for ids), visible focus, keyboard support, focus management in modals and on route change, `aria-*` only when no native element fits, `role="alert"`/live regions for async messages.
 - Test with RTL role queries, axe, and keyboard-only. → `accessibility-responsive.md`
 
 ---
 
-### ➕ 45b) "Tell me about a feature you built with reusable components." (STAR, real)
+### 45b) "Tell me about a feature you built with reusable components." (STAR, real)
 
 - **S/T:** OneHome (top-5 US home-search app) needed Favorites/sentiments: **like/dislike** set by the consumer, **recommend/exclude** set by the agent, with both seeing all 4.
 - **A:** A page with a **map plus 4 tabs**. Each tab is an **independent component** built from **shared components** (list, property card, map integration). **One API endpoint filtered by sentiment type** feeds all tabs, so one data hook is parameterised by sentiment. Backend data is in Elasticsearch, fed by Kafka from Matrix (external MLS), and changes are synced back to Matrix.
@@ -667,7 +654,7 @@ async function toggle() {
 
 ---
 
-### ➕ 46) "Tell me how you optimised a slow React page." (STAR, real)
+### 46) "Tell me how you optimised a slow React page." (STAR, real)
 
 - **S/T:** OneHome search and listing-detail pages were slow.
 - **A:** Measured first (Lighthouse / Core Web Vitals: LCP, INP, CLS, plus React Profiler). Then: correctly sized and lazy-loaded images, cut first-load JS (code splitting, `React.lazy`/dynamic import, removing unused libraries), fixed repeated expensive layout/CSS work, memoised where the profiler showed wasted renders, virtualised long lists.
@@ -682,11 +669,11 @@ async function toggle() {
 - Optimize with **`useMemo`/`useCallback`/`React.memo`**.
 - Use **Context** for stable, low-frequency global data; Redux/Zustand for complex app state.
 - For SSR/SSG/ISR → **Next.js**.
-- **➕** React 19: Actions, `useActionState`, `useOptimistic`, `use`, `ref` as a prop. The Compiler auto-memoises.
+- React 19: Actions, `useActionState`, `useOptimistic`, `use`, `ref` as a prop. The Compiler auto-memoises.
 
 ---
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - "Props don't trigger re-renders": wrong (see Q6).
 - Index as `key` in reorderable lists leads to state attached to the wrong rows.
 - Mutating state (`arr.push`) then calling `setArr(arr)` means the same reference, so no re-render.

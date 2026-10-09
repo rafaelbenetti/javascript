@@ -25,8 +25,8 @@
 | Logs and metrics | Cloud Logging / Monitoring | CloudWatch |
 | IAM | IAM + service accounts | IAM roles (task roles) |
 
-## Say it in 30 seconds
-"The reference architecture is React built to S3 and served by CloudFront. Spring Boot images go from ECR onto ECS Fargate behind an ALB. Aurora MySQL sits in private subnets. Async work goes from SNS into SQS queues with DLQs, and small event handlers run in Lambda. Secrets come from Secrets Manager via IAM task roles. Everything is multi-AZ, deployed by Jenkins and observed with CloudWatch, New Relic and Splunk. My production cloud is GCP, so I map from those concepts. I've used S3 directly."
+## Say it in 1 minute
+"The picture I draw is one reference architecture. React is built to S3 and served by CloudFront. Spring Boot images go from ECR onto ECS Fargate behind an application load balancer. Aurora MySQL sits in private subnets, and the tasks reach it through security groups. Async work goes from SNS into SQS, each queue with a dead-letter queue, and the small event handlers run in Lambda. Secrets come from Secrets Manager through the IAM task role, so there is no long-lived key baked into the image. The layout is multi-AZ. Jenkins is what deploys it, and CloudWatch, New Relic, and Splunk are how you see it once it is running. My production cloud is GCP, so I map from the concepts I have operated, containers, managed SQL, and messaging, rather than from an AWS account I have not run. The AWS service I have used directly is S3."
 
 ---
 

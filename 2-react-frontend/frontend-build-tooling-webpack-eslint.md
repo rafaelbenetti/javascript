@@ -2,8 +2,8 @@
 
 > Group 2 · Priority MEDIUM · Prep guide Q11 · Status: new file
 
-## Say it in 30 seconds
-"Webpack builds a dependency graph from an entry point. Loaders transform files (TS, Sass, images) and plugins work on the whole bundle (HTML, CSS extraction, minification). I keep bundles small with route-level code splitting via dynamic `import()`, tree shaking of ES modules, content-hashed filenames for long-term caching, and a bundle analyzer to find heavy dependencies. Cutting first-load JS was part of the ~40% speed-up on OneHome. ESLint plus Prettier and TypeScript run in pre-commit and in the Jenkins pipeline, so style and bug-prone patterns never reach review. Vite is the modern default for new apps, but the concepts are the same."
+## Say it in 1 minute
+"Webpack starts at an entry and walks a dependency graph. Loaders transform one file at a time, TypeScript, Sass, images, and plugins work on the compilation as a whole, the HTML, the extracted CSS, the minifier. I keep the bundle small with route-level splitting through a dynamic import, tree shaking of real ES modules, content-hashed filenames so the cache can live a long time, and a bundle analyzer when something is heavier than it should be. Cutting the JavaScript on first load was part of the roughly 40 percent speed-up on OneHome. ESLint, Prettier, and TypeScript run before commit and again in the Jenkins pipeline, so style and a class of bugs never become review comments. Vite is what I would pick for a new app, because the feedback loop is faster. Splitting, caching, and a size budget are the ideas that matter in either tool."
 
 ---
 

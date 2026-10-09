@@ -1,20 +1,10 @@
 # 🌀 RxJS Prep Guide
 
-> Group 6 · Corrected version of the former `other/rxjs.md` · Priority MEDIUM when the conversation turns to Angular or to streams
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 6 · Priority MEDIUM when the conversation turns to Angular or to streams
 > Related: [angular.md](angular.md) · the JS one-liner is in [javascript.md](../5-js-node-fundamentals/javascript.md)
 
-## What was fixed (changelog)
-1. **Version.** ➕ The stable line is **RxJS 7** (7.8.2 as of Feb 2025). **RxJS 8 has no stable release** (the 8.0.0-alpha line stopped in 2024). Don't describe v8 APIs as current.
-2. **`toPromise`.** ➕ Deprecated in RxJS 7. The return type became `Promise<T | undefined>` because an Observable can complete without a value. Replacements, both imported from `'rxjs'`: `firstValueFrom` (first emit, then unsubscribe) and `lastValueFrom` (same moment as the old `toPromise`: the last value, on completion). Both **reject with `EmptyError`** if the source completes empty, unless you pass `{ defaultValue }`. `toPromise` is removed only on the v8 alpha, not in 7.x.
-3. **Import paths.** ➕ Since **7.2**, operators are exported from `'rxjs'`. `'rxjs/operators'` still works in v7 and is the deprecated export site. `firstValueFrom` was never an operator. The RxJS 5 style `import 'rxjs/add/operator/map'` has been dead since v6.
-4. **Deprecated operators in the original list.** ✏️ `pluck` → `map(x => x.field)`. `retryWhen` → `retry({ delay })`.
-5. **Cold-observable demo.** ✏️ `of(Math.random())` called twice does **not** show a cold observable. `Math.random()` runs when `of()` is called, before `subscribe`. The fix is one observable subscribed twice, or `defer`.
-6. **Angular interop.** ➕ `toSignal` / `toObservable` from `@angular/core/rxjs-interop` (stable since Angular 20). `takeUntilDestroyed` (stable since Angular 19). `httpResource` / `rxResource` when you want a signal and the source is async. Signals did not replace RxJS.
-7. **➕ Added** the 30-second summary, questions 11–14, and traps.
-
-## ➕ Say it in 30 seconds
-"RxJS models async as a lazy stream: nothing happens until subscribe, it can emit many values, and unsubscribe cancels it. A Promise is eager and one-shot. I compose with pipeable operators imported from `rxjs`, and I pick the flattening operator on purpose: `switchMap` for search, `exhaustMap` for submit, `concatMap` when order matters, `mergeMap` for parallel work. `toPromise` is deprecated. I use `firstValueFrom` for one HTTP response and `lastValueFrom` when I truly want the last value on completion. In Angular, HTTP and form `valueChanges` stay Observables. UI state is a signal, and `toSignal` or `toObservable` is the bridge. I unsubscribe with the async pipe or `takeUntilDestroyed`, not a subscription I hope to remember."
+## Say it in 1 minute
+"RxJS is a lazy stream. Nothing happens until subscribe, it can emit many values, and unsubscribe cancels the work. A Promise is eager and settles once. I compose with pipeable operators, and on RxJS 7 I import them from rxjs. The flattening operator is a choice. switchMap for search, so the latest request wins. exhaustMap for submit, so a double click does not fire twice. concatMap when order matters, mergeMap when the work can run in parallel. toPromise is deprecated. firstValueFrom is the right shape for one HTTP response, and lastValueFrom is for the last value when the stream completes. In Angular, HTTP and form valueChanges stay Observables, UI state can be a signal, and toSignal or toObservable is the bridge. I unsubscribe with the async pipe or takeUntilDestroyed."
 
 ---
 
@@ -38,11 +28,11 @@
 
 ### 4) Key Operator Categories
 - **Creation**: `of`, `from`, `interval`, `fromEvent`.  
-- **Transformation**: `map`, `scan`. ✏️ `pluck` is **deprecated** since RxJS 7. Use `map(x => x.city)`.
+- **Transformation**: `map`, `scan`.  `pluck` is **deprecated** since RxJS 7. Use `map(x => x.city)`.
 - **Filtering**: `filter`, `debounceTime`, `take`, `distinctUntilChanged`.  
 - **Combination**: `merge`, `concat`, `combineLatest`, `forkJoin`, `zip`.  
 - **Flattening**: `switchMap`, `mergeMap`, `concatMap`, `exhaustMap`.  
-- **Error Handling**: `catchError`, `retry`. ✏️ `retryWhen` is **deprecated**. Use `retry({ count: 2, delay: 500 })` or `retry({ delay: (err, n) => timer(n * 200) })`.  
+- **Error Handling**: `catchError`, `retry`.  `retryWhen` is **deprecated**. Use `retry({ count: 2, delay: 500 })` or `retry({ delay: (err, n) => timer(n * 200) })`.  
 
 ### 5) Subjects & Variants
 - **Subject**: plain multicaster.  
@@ -59,10 +49,10 @@
 
 ### 7) Best Practices
 - Always **unsubscribe** long-lived streams → `AsyncPipe`, `takeUntilDestroyed()`, or `takeUntil`. A single `HttpClient` get completes, so it does not leak by itself.
-- Prefer **switchMap** for typeahead. ✏️ Not for every HTTP call: a submit button wants **exhaustMap** so a double click cannot cancel the first POST.
+- Prefer **switchMap** for typeahead.  Not for every HTTP call: a submit button wants **exhaustMap** so a double click cannot cancel the first POST.
 - Avoid nested `subscribe` → compose with operators instead.  
 - Keep types explicit → `Observable<T>`.
-- ➕ Import operators and `firstValueFrom` from `'rxjs'`, not `'rxjs/operators'`.  
+-  Import operators and `firstValueFrom` from `'rxjs'`, not `'rxjs/operators'`.  
 
 ⚡ **In one line:**  
 RxJS = *a toolkit for handling async values as streams, transforming them with operators, and composing them cleanly in Angular/Node apps.*  
@@ -127,8 +117,7 @@ obs.subscribe(console.log); // prints Hello, World
 ```ts
 import { Observable, fromEvent } from 'rxjs';
 
-// ✏️ FIXED. of(Math.random()) is not the demo: Math.random() runs
-// when of() is called, so two of() calls are just two observables.
+// `Math.random()` inside `of()` runs when `of()` is called, so two `of()` calls are just two observables.
 const cold = new Observable<number>((subscriber) => {
   subscriber.next(Math.random());
   subscriber.complete();
@@ -250,7 +239,7 @@ ngOnInit() {
 ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 ```
 
-**Takeaway:** Always unsubscribe long-lived streams. AsyncPipe is easiest. ➕ In Angular, `takeUntilDestroyed()` from `@angular/core/rxjs-interop` (stable since v19) replaces the hand-written `destroy$` Subject. Call it in an injection context (a field initializer or the constructor), or pass the `DestroyRef` you injected. `HttpClient.get` completes after one response, so that particular subscription is not the leak. `valueChanges`, `interval`, router events and `fromEvent` are.  
+**Takeaway:** Always unsubscribe long-lived streams. AsyncPipe is easiest.  In Angular, `takeUntilDestroyed()` from `@angular/core/rxjs-interop` (stable since v19) replaces the hand-written `destroy$` Subject. Call it in an injection context (a field initializer or the constructor), or pass the `DestroyRef` you injected. `HttpClient.get` completes after one response, so that particular subscription is not the leak. `valueChanges`, `interval`, router events and `fromEvent` are.  
 
 ---
 
@@ -293,7 +282,7 @@ fromEvent(inputEl, 'input').pipe(
 
 ---
 
-## ➕ 11) `toPromise` vs `firstValueFrom` vs `lastValueFrom`
+## 11) `toPromise` vs `firstValueFrom` vs `lastValueFrom`
 **Context:** Asked the moment an Angular codebase still has `.toPromise()`.
 
 **Answer:**
@@ -311,7 +300,7 @@ const last = await lastValueFrom(ticks$, { defaultValue: 0 });
 
 **Takeaway:** New code uses `firstValueFrom` for one HTTP response. Say "deprecated", not "removed", while the project is on RxJS 7.
 
-## ➕ 12) Where do you import operators from?
+## 12) Where do you import operators from?
 **Context:** Codebases still mix three eras.
 
 **Answer:**
@@ -327,7 +316,7 @@ Other entry points that are still real: `'rxjs/ajax'`, `'rxjs/fetch'`, `'rxjs/we
 
 **Takeaway:** One import site, `'rxjs'`. If you see `rxjs/internal/...`, that is private and will break.
 
-## ➕ 13) RxJS and Angular signals
+## 13) RxJS and Angular signals
 **Context:** "Did signals replace RxJS?" No.
 
 **Answer:**
@@ -346,7 +335,7 @@ users = toSignal(this.http.get<User[]>("/api/users"), { initialValue: [] });
 
 **Takeaway:** Bridge at the boundary. Don't rewrite a `switchMap` pipeline as five `effect()`s.
 
-## ➕ 14) Which flattening operator, and why?
+## 14) Which flattening operator, and why?
 **Answer:** All four subscribe to an inner Observable. They differ in what they do with the previous one.
 
 | Operator | In-flight work | Use |
@@ -360,7 +349,7 @@ users = toSignal(this.http.get<User[]>("/api/users"), { initialValue: [] });
 
 ---
 
-# ➕ Traps and gotchas
+# Traps and gotchas
 
 - `of(Math.random())` twice is two observables, not one cold observable subscribed twice. See question 3.
 - `firstValueFrom` on a stream that never emits and never completes hangs forever. HTTP is safe because it completes or errors. A Subject is not.

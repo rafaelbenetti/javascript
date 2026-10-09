@@ -1,22 +1,9 @@
 # Review of the basics of Javascript
 
-> Group 5 · Corrected version of the former `JAVASCRIPT.md` · Priority MEDIUM (fundamentals that get probed in a spoken interview)
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
-> Images moved from `src/assets/` to `5-js-node-fundamentals/assets/`; the links below are updated.
+> Group 5 · Priority MEDIUM (fundamentals that get probed in a spoken interview)
 
-## What was fixed (changelog)
-1. **Definition**: "interpreted, non typed, synchronous" → **dynamically typed** (values have types, variables don't), **JIT-compiled**, single-threaded, with **asynchronous** behaviour through the event loop.
-2. **Asynchronous** section: async isn't "simulated". The host (browser/Node) runs timers and I/O, and the event loop schedules callbacks back onto the single JS thread.
-3. **`setTimeout(executeInTheFuture(), 5000)`** called the function immediately and passed `undefined`. It's now `setTimeout(executeInTheFuture, 5000)`.
-4. **Currying**: `bind(person, 'en')` is **partial application**, not currying. Added a real currying example.
-5. **Hoisting**: added `let`/`const` and the TDZ. "hello is not defined yet" corrected (it *is* declared, with value `undefined`).
-6. **Equality**: added `===` as the default rule and `Object.is`.
-7. **Types**: added the 7 primitives + object, and `typeof` quirks.
-8. Code samples use `const`/`let` where it matters, and `Bind vs Call vs Apply` headings are nested properly.
-9. **➕ Added**: closures, prototypes, `this` in arrow functions, microtasks vs macrotasks, async/await, the "What is next" items answered, 30-second summary, Q&A and traps.
-
-## ➕ Say it in 30 seconds
-"JavaScript is dynamically typed: values have types, variables don't. It runs single-threaded on an engine like V8, which JIT-compiles hot code. It isn't blocking, though, because the host provides timers and I/O, and the event loop pushes callbacks back onto the call stack: promise reactions as microtasks first, then the next task. The fundamentals I'd expect to be asked about are closures, hoisting and the TDZ, `this` and `bind/call/apply`, prototypes behind classes, and moving from callbacks to promises to async/await."
+## Say it in 1 minute
+"JavaScript is dynamically typed: values have types, variables do not, and the engine will coerce if you let it. It runs on one thread, on an engine like V8, which JIT-compiles the hot paths. The host, the browser or Node, does the waiting, and the event loop pushes callbacks back onto the call stack. Promise reactions are microtasks and they run before the next task, which is why a resolved promise beats a timer of zero. The fundamentals I expect are closures, hoisting and the temporal dead zone, how this is bound and how bind, call, and apply change it, the prototypes under class syntax, and the path from callbacks to promises to async and await. Those are the pieces I use when I am explaining a real bug."
 
 
 * [Javascript definition](#Javascript-definition)
@@ -41,14 +28,14 @@
 * [What is next](#what-is-next)
 
 ## Javascript definition
-- ✏️ **FIXED:** JavaScript is a **dynamically typed**, **single-threaded**, **JIT-compiled** language with **non-blocking, asynchronous I/O** provided by its host (browser or Node) through the **event loop**. It's multi-paradigm (functional + prototype-based OO).
+- JavaScript is a **dynamically typed**, **single-threaded**, **JIT-compiled** language with **non-blocking, asynchronous I/O** provided by its host (browser or Node) through the **event loop**. It's multi-paradigm (functional + prototype-based OO).
 
 ## Interpreted
 - Javascript is interpreted at runtime by the client browser.
-- ✏️ More precisely: modern engines (V8, SpiderMonkey, JavaScriptCore) parse to bytecode, interpret it, and **JIT-compile hot functions** to optimised machine code (deoptimising if types change). It also runs on servers (Node, Deno, Bun).
+-  More precisely: modern engines (V8, SpiderMonkey, JavaScriptCore) parse to bytecode, interpret it, and **JIT-compile hot functions** to optimised machine code (deoptimising if types change). It also runs on servers (Node, Deno, Bun).
 
 ## Non typed
-- ✏️ **FIXED:** JavaScript is **dynamically typed**, not untyped. **Values** have types (checked at runtime), **variables** don't, so a variable can hold different types over time. It's also **weakly typed** (implicit coercion: `'5' * 2 === 10`). TypeScript adds static types at compile time.
+- JavaScript is **dynamically typed**, not untyped. **Values** have types (checked at runtime), **variables** don't, so a variable can hold different types over time. It's also **weakly typed** (implicit coercion: `'5' * 2 === 10`). TypeScript adds static types at compile time.
 
 ```js
 var name = 'Walter White';
@@ -66,18 +53,18 @@ name = 20;   // You can change the type.
 ## Synchronous
 - Javascript is Synchronous***.
 - It means that Javascript can execute only one thing at a time too.
-- ✏️ Precisely: **your JS code** runs synchronously, one statement at a time on one call stack, and runs to completion (nothing interrupts a function mid-way).
+-  Precisely: **your JS code** runs synchronously, one statement at a time on one call stack, and runs to completion (nothing interrupts a function mid-way).
 
 ![Synchronous](assets/synchronous.png)
 
 ## Asynchronous
-- ✏️ **FIXED:** the language itself has no I/O, but asynchrony is a core part of how JS runs, not a simulation. The **host** (browser Web APIs, Node's libuv) runs timers, network and file I/O **in parallel outside the JS thread**. When they finish, their callbacks are queued, and the **event loop** runs them when the call stack is empty.
+- the language itself has no I/O, but asynchrony is a core part of how JS runs, not a simulation. The **host** (browser Web APIs, Node's libuv) runs timers, network and file I/O **in parallel outside the JS thread**. When they finish, their callbacks are queued, and the **event loop** runs them when the call stack is empty.
 - Order: current task → **all microtasks** (promise `.then`, `await` continuations, `queueMicrotask`) → (browser render) → next **macrotask** (`setTimeout`, I/O, events).
 
 ![Asynchronous](assets/asynchronous.png)
 
 ## Types
-- ✏️ **Types:** 7 primitives (`string`, `number`, `bigint`, `boolean`, `undefined`, `symbol`, `null`) plus `object` (arrays, functions, dates… are objects). `typeof null === 'object'` is a historical bug, and `typeof function(){}` gives `'function'`.
+- **Types:** 7 primitives (`string`, `number`, `bigint`, `boolean`, `undefined`, `symbol`, `null`) plus `object` (arrays, functions, dates… are objects). `typeof null === 'object'` is a historical bug, and `typeof function(){}` gives `'function'`.
 - Javascript undestand at runtime the basic types.
 - Javascript evaluates expressions from left to right. Different sequences can produce different results:
 
@@ -92,7 +79,7 @@ var age = 'benetti' + 20 + 2;
 ```
 
 ## Undefined
-- It's the default value for variables. ✏️ (declared with `var`/`let` but not assigned; missing properties and parameters; functions without `return`). `null` is an intentional "no value".
+- It's the default value for variables.  (declared with `var`/`let` but not assigned; missing properties and parameters; functions without `return`). `null` is an intentional "no value".
 - In the case of a function is void, it will always return undefined.
 - It is the cause of the commum error 'Undefined is not a function!'.
 
@@ -162,9 +149,9 @@ fruit === fruitbear; // return true
 
 ## Equality operators
 - In Javascript there's two main ways of equality.
-- For equality of value ==. ✏️ (*loose*: converts types first, with surprising rules)
-- For equality of value and type ===. ✏️ (*strict*). **Default to `===`.** Common exception: `x == null` checks both `null` and `undefined`.
-- ➕ `Object.is(NaN, NaN)` is true (`NaN === NaN` is false), and `Object.is(0, -0)` is false.
+- For equality of value ==.  (*loose*: converts types first, with surprising rules)
+- For equality of value and type ===.  (*strict*). **Default to `===`.** Common exception: `x == null` checks both `null` and `undefined`.
+-  `Object.is(NaN, NaN)` is true (`NaN === NaN` is false), and `Object.is(0, -0)` is false.
 
 ```js
 1  == '1' // true
@@ -197,7 +184,7 @@ var hello = 'hello hoisting';
 
 console.log(hello);
 
-// ✏️ Result: undefined, because hello is already declared (hoisted) but not yet assigned.
+//  Result: undefined, because hello is already declared (hoisted) but not yet assigned.
 // Result: hello hoisting
 ```
 ```js
@@ -217,7 +204,7 @@ var sayGoodBye = function() {
 // Result: hello hoisting
 // Result: TypeError: sayGoodBye is not a function
 ```
-- ➕ `let`/`const`/`class` are hoisted too, but stay **uninitialised** in the **Temporal Dead Zone** until their line runs:
+-  `let`/`const`/`class` are hoisted too, but stay **uninitialised** in the **Temporal Dead Zone** until their line runs:
 ```js
 console.log(total); // ❌ ReferenceError: Cannot access 'total' before initialization
 let total = 10;
@@ -248,11 +235,11 @@ function executeInTheFuture() {
     console.log('Iam in the future!');
 }
 
-setTimeout(executeInTheFuture, 5000); // ✏️ FIXED: pass the function. `executeInTheFuture()` ran it NOW and passed undefined.
+setTimeout(executeInTheFuture, 5000); // Pass the function. Calling `executeInTheFuture()` runs it now and passes undefined.
 // or with arguments: setTimeout(() => greet('Rafael'), 5000);
 ```
 ## Promises
-- ✏️ A Promise is an object representing a **future value**, in one of 3 states: **pending → fulfilled | rejected** (settled once, immutable after).
+-  A Promise is an object representing a **future value**, in one of 3 states: **pending → fulfilled | rejected** (settled once, immutable after).
 - It solve the callback hell problem! :) (chaining with `.then`, one `.catch` for the whole chain)
 - The executor function receives two parameters, resolve and reject.
 - Resolve is executed in case of success.
@@ -287,7 +274,7 @@ myFirstPromise.then((successMessage) => {
 });
 ```
 
-### ➕ async/await (what you write today)
+### async/await (what you write today)
 ```js
 async function loadUser(id) {
   try {
@@ -305,7 +292,7 @@ const [user, roles] = await Promise.all([loadUser(1), fetch('/api/roles').then(r
 ```
 
 ## Observable
-- ➕ (was in the index, no section) A lazy stream of **0..n values over time** (RxJS). Unlike a promise, it's lazy (nothing happens until `subscribe`), can emit many values, and is cancellable (`unsubscribe`). Used heavily in Angular; see `../6-frontend-frameworks-extras/rxjs.md`.
+-  (was in the index, no section) A lazy stream of **0..n values over time** (RxJS). Unlike a promise, it's lazy (nothing happens until `subscribe`), can emit many values, and is cancellable (`unsubscribe`). Used heavily in Angular; see `../6-frontend-frameworks-extras/rxjs.md`.
 
 ## Callback queue
 
@@ -350,21 +337,21 @@ logName.apply(person, ['en', 'pt']);
 ```
 
 ## Function Currying
-- ✏️ **FIXED:** the example below is **partial application**: creating a copy of a function with some arguments preset (they can't be replaced).
+- the example below is **partial application**: creating a copy of a function with some arguments preset (they can't be replaced).
 
 ```js
 var longPersonName = logName.bind(person, 'en');
 longPersonName('pt'); // Logged: John Doe / Arguments: en pt
 ```
 
-- ➕ **Currying** transforms `f(a, b, c)` into `f(a)(b)(c)`, one argument at a time:
+- **Currying** transforms `f(a, b, c)` into `f(a)(b)(c)`, one argument at a time:
 ```js
 const add = a => b => c => a + b + c;
 add(1)(2)(3); // 6
 const add10 = add(10);  // reusable, partially applied
 ```
 
-## ➕ Closures
+## Closures
 - A function **remembers the variables of the scope where it was created**, even after that scope has returned. It's the basis for data privacy, factories, memoisation and React hooks (and stale closures in `useEffect`).
 ```js
 function counter() {
@@ -374,7 +361,7 @@ function counter() {
 const c = counter(); c.inc(); c.get(); // 1
 ```
 
-## ➕ Prototypes
+## Prototypes
 - Every object has a hidden `[[Prototype]]` link. Property lookup walks the **prototype chain** until `null`. `class` is syntax sugar over constructor functions + prototypes.
 ```js
 class Animal { speak() { return 'generic'; } }
@@ -382,7 +369,7 @@ class Dog extends Animal { speak() { return 'woof'; } }
 Object.getPrototypeOf(Dog.prototype) === Animal.prototype; // true
 ```
 
-## ➕ `this` with arrow functions
+## `this` with arrow functions
 - Arrow functions don't have their own `this`; they use the enclosing one. Great for callbacks inside methods, but **wrong as object methods**:
 ```js
 const obj = { name: 'A', regular() { return this.name; }, arrow: () => this?.name };
@@ -391,12 +378,12 @@ obj.arrow();   // undefined (this = module/global scope)
 ```
 
 ## What is next
-- Hash tables in js. ➕ Plain objects and `Map` are hash maps. Prefer `Map` for dynamic keys (any key type, keeps insertion order, `.size`, no prototype key collisions). `Set` for uniqueness. Lookup is O(1) on average.
-- Modules/How it works/Export/ index.js. ➕ ES modules are static (`import`/`export` resolved before running), singletons (evaluated once and cached), and live bindings. An `index.js` "barrel" re-exports a folder's API, but big barrels can hurt tree-shaking and test speed.
-- Complexity in o(n), o(1). ➕ `arr.includes`/`indexOf`/`find` are O(n), and `Set.has`/`Map.get` are O(1) on average, so convert to a `Set` before looking up inside a loop to avoid O(n²). `sort` is O(n log n).
-- Prototype in js. ➕ See *Prototypes* above.
+- Hash tables in js.  Plain objects and `Map` are hash maps. Prefer `Map` for dynamic keys (any key type, keeps insertion order, `.size`, no prototype key collisions). `Set` for uniqueness. Lookup is O(1) on average.
+- Modules/How it works/Export/ index.js.  ES modules are static (`import`/`export` resolved before running), singletons (evaluated once and cached), and live bindings. An `index.js` "barrel" re-exports a folder's API, but big barrels can hurt tree-shaking and test speed.
+- Complexity in o(n), o(1).  `arr.includes`/`indexOf`/`find` are O(n), and `Set.has`/`Map.get` are O(1) on average, so convert to a `Set` before looking up inside a loop to avoid O(n²). `sort` is O(n log n).
+- Prototype in js.  See *Prototypes* above.
 
-## ➕ Interview Q&A
+## Interview Q&A
 **Q: Is JavaScript interpreted or compiled?** "Both: engines parse to bytecode, interpret it, and JIT-compile hot paths. So 'interpreted' is outdated."
 
 **Q: How can single-threaded JS handle many things at once?** "The host does the waiting (timers, network, disk) outside the JS thread, and the event loop schedules the callbacks. JS only blocks when my own code is CPU-heavy, and then I move it to a Web Worker or chunk the work."
@@ -405,7 +392,7 @@ obj.arrow();   // undefined (this = module/global scope)
 
 **Q: `bind` vs `call` vs `apply`?** "`call` and `apply` invoke immediately with a given `this` (args listed vs array). `bind` returns a new function with `this` (and optionally args) fixed, which is useful for callbacks."
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 - `setTimeout(fn(), ms)` runs `fn` immediately. Pass `fn` or `() => fn(arg)`.
 - `setTimeout(fn, 0)` isn't immediate: it runs after all microtasks and at least one loop turn (clamped to ≥4 ms when nested).
 - Losing `this`: `button.addEventListener('click', obj.method)`. Use `obj.method.bind(obj)` or an arrow.

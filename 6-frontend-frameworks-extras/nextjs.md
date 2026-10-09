@@ -1,37 +1,26 @@
 # ⚛️ Next.js Prep — Top 20 Interview Q&A
 
-> Group 6 · Corrected version of the former `other/nextjs.md` · Priority MEDIUM (React is in the stack; Next is the usual production framework around it)
-> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Group 6 · Priority MEDIUM (React is in the stack; Next is the usual production framework around it)
 > Related: [react.md](../2-react-frontend/react.md) (Q33/Q34 are the short version of this file)
 
-## What was fixed (changelog)
-1. **Data functions are Pages Router.** ✏️ `getServerSideProps`, `getStaticProps`, `getInitialProps` and `getStaticPaths` do not exist in the App Router. `getServerSideProps` is legacy: still correct inside `pages/`, not the API you reach for in new code. The App Router fetches in an async Server Component.
-2. **Two routers, not "Next 12 vs Next 13".** ✏️ The Pages Router is still supported. The App Router (`app/`) has been the default for new apps since Next 13 and is still the current model in **Next 16** (latest stable **16.4**, Oct 2026). Next 17 is not released. Cache Components are planned to become the framework default there.
-3. **Caching changed twice.** ✏️ Next 14 cached `fetch` by default. **Next 15** made `fetch`, GET Route Handlers, and client page navigations **uncached by default**. **Next 16** adds opt-in **Cache Components** (`"use cache"`, `cacheLife`, `cacheTag`). **16.4** turns that on for new `create-next-app` projects. `export const dynamic` / `revalidate` / `fetchCache` error once `cacheComponents` is enabled.
-4. **Server Actions** ➕ were missing. `'use server'` functions are the mutation path. They are public POST endpoints. Validate and authorize inside them.
-5. **Request APIs are async since Next 15.** ✏️ `params`, `searchParams`, `cookies()` and `headers()` return Promises. Forgetting `await` is the usual upgrade failure.
-6. **Route Handlers, metadata, middleware.** ✏️ App Router endpoints live in `route.ts` (`export async function GET`), not only `pages/api`. Metadata is `export const metadata` / `generateMetadata`, not `next/head`. In Next 16 the `middleware.ts` filename is **deprecated** in favor of `proxy.ts`.
-7. **Auth.js.** ✏️ The library formerly called NextAuth.js is Auth.js. The import is still `next-auth` in many apps.
-8. **➕ Added** the 30-second summary, a caching section, and traps.
-
-## ➕ Say it in 30 seconds
-"Next.js is a React framework with file-system routing. New work uses the App Router: components are Server Components by default, they can be `async` and fetch on the server, and a file with `'use client'` is the client boundary. Mutations go through Server Actions. `getServerSideProps` is the old Pages Router. Caching is the part people get wrong: Next 14 cached fetches by default, Next 15 stopped, and Next 16 makes caching explicit with `'use cache'` inside Cache Components. `params` and `cookies()` are Promises since Next 15. I'd deploy with `next build` and `next start`, on Vercel or in a container."
+## Say it in 1 minute
+"Next.js is the React framework I use when the app needs routing, data fetching, and a production build. New work goes in the App Router. Components are Server Components by default, so they can be async and read data on the server, and use client is the boundary where hooks and browser APIs start. Mutations go through Server Actions. getServerSideProps belongs to the Pages Router, and I treat it as the legacy path. Caching is the part people get wrong. Next 14 cached fetches by default, Next 15 stopped, and Next 16 makes it explicit with use cache inside Cache Components. Since Next 15, params, cookies, and headers are Promises, so you await them. I ship with next build and next start, on Vercel or in a container. A route can be static, dynamic, or cached and revalidated."
 
 ---
 
 ## 📖 Quick Overview
 
-- **What is Next.js?** → React framework for **server rendering**, **static generation**, and **route handlers**. ✏️ Not only SSR. A route can be static, dynamic per request, or cached and revalidated.
+- **What is Next.js?** → React framework for **server rendering**, **static generation**, and **route handlers**.  Not only SSR. A route can be static, dynamic per request, or cached and revalidated.
 - **Rendering modes:**
-  - **SSR** (Server-Side Rendering) → HTML built on each request. ✏️ In the **Pages Router** that is `getServerSideProps` (**legacy**). In the **App Router** it is an async Server Component that reads `cookies()` / `headers()` or does an uncached fetch.
-  - **SSG** (Static Site Generation) → pre-rendered at build time. ✏️ Pages: `getStaticProps`. App Router: a Server Component that only reads cached data, or a `"use cache"` function when Cache Components are on.
-  - **ISR** (Incremental Static Regeneration) → update static pages after build. ✏️ Pages: `revalidate` on `getStaticProps`. App Router before Cache Components: `next: { revalidate }`. With Cache Components: `cacheLife`.
+  - **SSR** (Server-Side Rendering) → HTML built on each request.  In the **Pages Router** that is `getServerSideProps` (**legacy**). In the **App Router** it is an async Server Component that reads `cookies()` / `headers()` or does an uncached fetch.
+  - **SSG** (Static Site Generation) → pre-rendered at build time.  Pages: `getStaticProps`. App Router: a Server Component that only reads cached data, or a `"use cache"` function when Cache Components are on.
+  - **ISR** (Incremental Static Regeneration) → update static pages after build.  Pages: `revalidate` on `getStaticProps`. App Router before Cache Components: `next: { revalidate }`. With Cache Components: `cacheLife`.
   - **CSR** (Client-Side Rendering) → classic React behavior, inside a Client Component.
-- **Routing**: ✏️ **App Router** (`app/page.tsx`) is the current default. **Pages Router** (`pages/`) still works and can live in the same project. Don't describe this as "Next 12 vs Next 13".
-- **API Routes**: ✏️ Pages: `pages/api`. App Router: **Route Handlers** in `app/api/.../route.ts`.
-- **Styling**: CSS modules, Tailwind, global CSS. ✏️ CSS-in-JS (styled-components) and Server Components get along badly. Don't promise "streaming CSS-in-JS" as a smooth default.
+- **Routing**: **App Router** (`app/page.tsx`) is the current default. **Pages Router** (`pages/`) still works and can live in the same project. Don't describe this as "Next 12 vs Next 13".
+- **API Routes**:  Pages: `pages/api`. App Router: **Route Handlers** in `app/api/.../route.ts`.
+- **Styling**: CSS modules, Tailwind, global CSS.  CSS-in-JS (styled-components) and Server Components get along badly. Don't promise "streaming CSS-in-JS" as a smooth default.
 - **Deployment**: Optimized for **Vercel**, but works with AWS, Docker, etc. `next build && next start`.
-- **Request interception**: ✏️ Next 16 deprecates `middleware.ts` in favor of **`proxy.ts`** (the export is renamed `proxy` too). It runs before the route, for redirects and coarse auth gates, and it **defaults to the Node.js runtime**. Not a full backend.
+- **Request interception**:  Next 16 deprecates `middleware.ts` in favor of **`proxy.ts`** (the export is renamed `proxy` too). It runs before the route, for redirects and coarse auth gates, and it **defaults to the Node.js runtime**. Not a full backend.
 
 ---
 
@@ -41,14 +30,14 @@
 
 - React = library for UI, no routing/SSR built-in.
 - Next.js = full framework with **server rendering, file routing, route handlers, image optimization**.
-- ➕ Current model: **Server Components** by default, **Server Actions** for mutations, explicit caching (see the caching section).
+-  Current model: **Server Components** by default, **Server Actions** for mutations, explicit caching (see the caching section).
 - Benefits: SEO, less client JS, a place to keep secrets off the browser.
 
 ---
 
 ### 2) Explain the difference between SSR, SSG, CSR, and ISR.
 
-- **SSR**: HTML on each request (dynamic, fresh data). ✏️ App Router: uncached Server Component, not automatically `getServerSideProps`.
+- **SSR**: HTML on each request (dynamic, fresh data).  App Router: uncached Server Component, not automatically `getServerSideProps`.
 - **SSG**: HTML at build time (fast, static, stale until the next build unless you revalidate).
 - **ISR**: serve the static page, rebuild in the background after a lifetime. The next request after the rebuild sees new data. A request during the rebuild still gets the old page.
 - **CSR**: browser renders after JS loads and fetches JSON. Worse for first paint and SEO. Right for data that is user-specific and shouldn't be in the HTML.
@@ -57,10 +46,10 @@
 
 ### 3) How does routing work in Next.js?
 
-- ✏️ **Pages Router** (still supported): `pages/about.tsx` → `/about`. Dynamic: `pages/posts/[id].tsx`. Catch-all: `pages/[...slug].tsx`.
-- ✏️ **App Router** (default for new apps since Next 13, current in Next 16): `app/about/page.tsx`. A `layout.tsx` wraps every child route and preserves state across navigations. `loading.tsx` and `error.tsx` are the Suspense and error boundary for that segment.
+- **Pages Router** (still supported): `pages/about.tsx` → `/about`. Dynamic: `pages/posts/[id].tsx`. Catch-all: `pages/[...slug].tsx`.
+- **App Router** (default for new apps since Next 13, current in Next 16): `app/about/page.tsx`. A `layout.tsx` wraps every child route and preserves state across navigations. `loading.tsx` and `error.tsx` are the Suspense and error boundary for that segment.
 - Dynamic: `app/posts/[id]/page.tsx`. Catch-all: `app/[...slug]/page.tsx`. Route groups `(marketing)` don't affect the URL.
-- ➕ Since **Next 15**, `params` and `searchParams` are **Promises**:
+-  Since **Next 15**, `params` and `searchParams` are **Promises**:
 
 ```tsx
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -73,7 +62,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
 ### 4) What are Next.js API routes?
 
-- ✏️ **Pages Router (legacy shape):** one handler for every method in `pages/api/user.ts`:
+- **Pages Router (legacy shape):** one handler for every method in `pages/api/user.ts`:
 
 ```js
 export default function handler(req, res) {
@@ -81,7 +70,7 @@ export default function handler(req, res) {
 }
 ```
 
-- ✏️ **App Router (current): Route Handlers.** `app/api/user/route.ts` exports a function per method. GET is **not cached by default since Next 15**.
+- **App Router (current): Route Handlers.** `app/api/user/route.ts` exports a function per method. GET is **not cached by default since Next 15**.
 
 ```ts
 export async function GET() {
@@ -95,7 +84,7 @@ export async function GET() {
 
 ### 5) What is the difference between `getStaticProps`, `getServerSideProps`, and `getInitialProps`?
 
-- All three are **Pages Router** APIs. ✏️ **`getServerSideProps` is legacy** for new work. There is no App Router equivalent with that name.
+- All three are **Pages Router** APIs. **`getServerSideProps` is legacy** for new work. There is no App Router equivalent with that name.
 - `getStaticProps`: build time → props injected at compile. `revalidate` turns it into ISR. App Router replacement: a cached fetch, or `"use cache"`.
 - `getServerSideProps`: runs **on every request**, on the server only. App Router replacement: an async Server Component. Reading `cookies()` or `headers()` (both async since Next 15) opts that render into dynamic.
 - `getInitialProps`: older still. Runs on the server **and** the client on client navigations, and it disables automatic static optimization. Don't add it.
@@ -105,8 +94,8 @@ export async function GET() {
 
 ### 6) How does Next.js handle API caching with ISR?
 
-- ✏️ That description is the **Pages Router**: `getStaticProps` returns `revalidate: 60`.
-- App Router **without** Cache Components: `fetch(url, { next: { revalidate: 60 } })`, or `export const revalidate = 60` on the segment. ✏️ In **Next 15+** a bare `fetch()` is **not** cached, so you must opt in. In Next 14 a bare `fetch()` was cached, which is why upgrades "randomly" went dynamic.
+-  That description is the **Pages Router**: `getStaticProps` returns `revalidate: 60`.
+- App Router **without** Cache Components: `fetch(url, { next: { revalidate: 60 } })`, or `export const revalidate = 60` on the segment.  In **Next 15+** a bare `fetch()` is **not** cached, so you must opt in. In Next 14 a bare `fetch()` was cached, which is why upgrades "randomly" went dynamic.
 - App Router **with** Cache Components (Next 16, on by default for new apps in 16.4): those `revalidate` / `dynamic` exports are removed. Lifetime is `cacheLife` inside a `"use cache"` function. See the caching section below.
 - After the lifetime, the next request can trigger a background rebuild. The request that triggered it still gets the previous result (stale-while-revalidate), unless you used `updateTag` in a Server Action and need read-your-writes.
 
@@ -114,7 +103,7 @@ export async function GET() {
 
 ### 7) What is the App Router in Next.js 13?
 
-- ✏️ Not a Next 13 curiosity. It is the current router through Next 16.
+-  Not a Next 13 curiosity. It is the current router through Next 16.
 - Uses the `app/` directory with **React Server Components**.
 - Layouts, streaming (`loading.tsx`, Suspense), parallel routes (`@slot`) and intercepting routes.
 - Server Components are the default. `'use client'` at the top of a file opts that file, and the modules it imports, into the client bundle. `children` passed into a client layout can still be Server Components, because they are rendered on the server and passed as already-rendered nodes.
@@ -127,7 +116,7 @@ export async function GET() {
 - Server Components run **on the server only** and ship no component JS for themselves. They can `await` data, read secrets, and talk to the database.
 - They cannot use `useState`, `useEffect`, browser APIs, or event handlers. Those belong in a Client Component (`'use client'`).
 - Props passed from a Server Component to a Client Component must be serializable. Functions, class instances and Dates that you expected to stay Dates will not cross that boundary (Dates become strings unless you pass a timestamp).
-- ➕ **Server Actions** are the other direction: a function marked `'use server'` that a form or Client Component calls. Next sends a POST. Treat it as a public endpoint.
+- **Server Actions** are the other direction: a function marked `'use server'` that a form or Client Component calls. Next sends a POST. Treat it as a public endpoint.
 
 ```ts
 "use server";
@@ -144,7 +133,7 @@ export async function saveListing(formData: FormData) {
 ### 9) How does Next.js optimize images?
 
 - `<Image />` from `next/image` → lazy loading, responsive `sizes`, automatic WebP/AVIF, and a required width/height or `fill` so layout doesn't shift.
-- ✏️ `next/legacy/image` and the `images.domains` config are deprecated in Next 16. Use `next/image` and `images.remotePatterns`.
+-  `next/legacy/image` and the `images.domains` config are deprecated in Next 16. Use `next/image` and `images.remotePatterns`.
 - Optimized on demand via the Image Optimization API. That API has to run somewhere (Vercel, or a custom loader for S3/CloudFront). A static `next export` does not resize images by itself.
 
 ---
@@ -152,7 +141,7 @@ export async function saveListing(formData: FormData) {
 ### 10) What are Next.js Middleware functions?
 
 - Run **before** the route renders. Used for redirects, rewrites, and a coarse auth gate (presence of a cookie, not a full database session check).
-- ✏️ **Next 16 deprecates the `middleware.ts` filename.** Rename the file to `proxy.ts` and the exported function from `middleware` to `proxy`. Existing `middleware.ts` files still run. Since 16, proxy **defaults to the Node.js runtime**, so "it always runs at the edge" is out of date. It is a boundary in front of the route, not a place for slow I/O.
+- **Next 16 deprecates the `middleware.ts` filename.** Rename the file to `proxy.ts` and the exported function from `middleware` to `proxy`. Existing `middleware.ts` files still run. Since 16, proxy **defaults to the Node.js runtime**, so "it always runs at the edge" is out of date. It is a boundary in front of the route, not a place for slow I/O.
 - A `matcher` keeps it off `/_next` and static files.
 
 ```ts
@@ -178,9 +167,9 @@ export function proxy(req: NextRequest) {
 ### 12) How do you add authentication in Next.js?
 
 - Approaches:
-  - ✏️ **Auth.js** (the project formerly named NextAuth.js). The package name is often still `next-auth`.
+  - **Auth.js** (the project formerly named NextAuth.js). The package name is often still `next-auth`.
   - A session cookie checked in a Server Component or in `proxy.ts`. The proxy is a gate, not the place that loads the user from the database.
-  - ✏️ JWTs: short-lived access token in memory, refresh token in an **HttpOnly** cookie. Not `localStorage`. See [storage-security.md](../4-architecture-security/storage-security.md).
+  -  JWTs: short-lived access token in memory, refresh token in an **HttpOnly** cookie. Not `localStorage`. See [storage-security.md](../4-architecture-security/storage-security.md).
 
 ---
 
@@ -220,8 +209,8 @@ const HeavyComp = dynamic(() => import("../components/HeavyComp"), {
 
 ### 17) How do you handle SEO in Next.js?
 
-- ✏️ **Pages Router:** `<Head>` from `next/head`.
-- ✏️ **App Router (current):** the Metadata API. Static `export const metadata = { title, description }` or async `generateMetadata`. This replaces `next/head` and dedupes tags. Open Graph and canonical URLs live here too.
+- **Pages Router:** `<Head>` from `next/head`.
+- **App Router (current):** the Metadata API. Static `export const metadata = { title, description }` or async `generateMetadata`. This replaces `next/head` and dedupes tags. Open Graph and canonical URLs live here too.
 - Crawlable HTML comes from Server Components (static or dynamic), not from a client-only `useEffect` fetch.
 - Add `app/sitemap.ts` and `app/robots.ts`, plus JSON-LD where rich results matter.
 
@@ -238,7 +227,7 @@ const HeavyComp = dynamic(() => import("../components/HeavyComp"), {
 ### 19) How does Next.js handle CSS and styling?
 
 - Options that work cleanly with Server Components: **CSS Modules**, global CSS, Tailwind.
-- ✏️ **FIXED:** "App Router supports CSS-in-JS with streaming" oversells it. styled-components needs extra SSR wiring and still fights Server Components. If you don't already have it, don't pick it for a new App Router app.
+- styled-components needs extra SSR wiring and still fights Server Components. If you don't already have it, don't pick it for a new App Router app.
 
 ---
 
@@ -247,11 +236,11 @@ const HeavyComp = dynamic(() => import("../components/HeavyComp"), {
 - SEO-friendly sites (blogs, e-commerce).
 - Dashboards with hybrid server and client rendering.
 - BFF (Route Handlers or Server Actions).
-- ✏️ A Node server (`next start`) or a serverless host. It is not "serverless only". On AWS that is often a container, not a Lambda, once the server bundle and the image optimizer have to stay warm.
+-  A Node server (`next start`) or a serverless host. It is not "serverless only". On AWS that is often a container, not a Lambda, once the server bundle and the image optimizer have to stay warm.
 
 ---
 
-## ➕ Caching: Next 14 → 15 → 16
+## Caching: Next 14 → 15 → 16
 
 This is the question that separates a current answer from a memorized Next 13 one.
 
@@ -277,7 +266,7 @@ async function getListing(id: string) {
 
 **Pages Router, unchanged and legacy:** `getStaticProps` + `revalidate`, `getServerSideProps` on every request, `getInitialProps` avoided.
 
-## ➕ Extra questions
+## Extra questions
 
 ### What is a Server Action, in one sentence?
 A function marked `'use server'` that the browser invokes with a POST. Next serializes the arguments and the return value. It can run from a `<form action={save}>` with no client JS, or from a Client Component event. It is not a secret RPC. Anyone can POST to it, so authentication and validation live inside the function. Close over no request-specific data from a render. Pass ids as arguments and load the row on the server.
@@ -288,7 +277,7 @@ It is a boundary, not a hint. That module and its imports are in the client grap
 ### Why did my static page become dynamic?
 You called `cookies()`, `headers()`, or `await connection()`, or (on Next 15 without Cache Components) you fetched without opting into a cache. On Next 14 the opposite bug was more common: a fetch you thought was live was cached at build time. Say which version you mean.
 
-## ➕ Traps and gotchas
+## Traps and gotchas
 
 - Calling `getServerSideProps` "the Next.js way" in 2026. It is the Pages Router way, and it is legacy for new routes.
 - Assuming `fetch` cache behavior without naming the version. 14 and 15 are opposites.
