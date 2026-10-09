@@ -45,10 +45,10 @@ Files that came from the original notes were corrected in place: changes are mar
 - [javascript.md](5-js-node-fundamentals/javascript.md): ✏️ Corrected: JS basics (dynamic typing, JIT, event loop, hoisting/TDZ, closures, prototypes, currying vs partial application)
 - [leadership.md](5-js-node-fundamentals/leadership.md): 30 team-lead Q&A plus a STAR table tying them to your real stories
 - [nodejs.md](5-js-node-fundamentals/nodejs.md): ✏️ Corrected: Node event loop phases, libuv thread pool vs network I/O, ESM/require(esm), NestJS ↔ Spring bridge
+- [overview.md](5-js-node-fundamentals/overview.md): ✏️ Corrected former other/overview.md (team-lead tech primer, kept beside the leadership Q&A): trunk-based branching, test pyramid vs trophy, observability pillars and OpenTelemetry, DORA metrics
 - [src/](5-js-node-fundamentals/src/): Small runnable ES5/ES2015 snippets (hoisting, scope, closures, `this`, prototypes)
 
-## Other notes (original files, moved unchanged) ([folder](other/))
-- [angular.md](other/angular.md): Original Angular notes (unchanged; not in the Applica stack)
-- [nextjs.md](other/nextjs.md): Original Next.js notes (unchanged)
-- [overview.md](other/overview.md): Original team-lead tech overview (unchanged): branching, test pyramid, observability pillars
-- [rxjs.md](other/rxjs.md): Original RxJS notes (unchanged)
+## 6. Frontend frameworks extras ([folder](6-frontend-frameworks-extras/))
+- [angular.md](6-frontend-frameworks-extras/angular.md): ✏️ Corrected former other/angular.md: standalone-by-default (v19), `@if`/`@for`, functional interceptors and guards, signals timeline, zoneless (default for new apps in v21), OnPush-by-default and Signal Forms (v22). Not the Applica stack
+- [nextjs.md](6-frontend-frameworks-extras/nextjs.md): ✏️ Corrected former other/nextjs.md: App Router vs Pages Router, Server Components, Server Actions, `getServerSideProps` marked legacy, caching in Next 15 and Cache Components in 16/16.4
+- [rxjs.md](6-frontend-frameworks-extras/rxjs.md): ✏️ Corrected former other/rxjs.md: RxJS 7 (v8 is not stable), `toPromise` deprecated for `firstValueFrom`/`lastValueFrom`, imports from `rxjs`, signal interop (`toSignal`/`toObservable`)

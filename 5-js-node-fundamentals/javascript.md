@@ -305,7 +305,7 @@ const [user, roles] = await Promise.all([loadUser(1), fetch('/api/roles').then(r
 ```
 
 ## Observable
-- ➕ (was in the index, no section) A lazy stream of **0..n values over time** (RxJS). Unlike a promise, it's lazy (nothing happens until `subscribe`), can emit many values, and is cancellable (`unsubscribe`). Used heavily in Angular; see `../other/rxjs.md`.
+- ➕ (was in the index, no section) A lazy stream of **0..n values over time** (RxJS). Unlike a promise, it's lazy (nothing happens until `subscribe`), can emit many values, and is cancellable (`unsubscribe`). Used heavily in Angular; see `../6-frontend-frameworks-extras/rxjs.md`.
 
 ## Callback queue
 
