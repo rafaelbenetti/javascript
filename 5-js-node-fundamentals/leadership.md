@@ -1,5 +1,26 @@
 # 👨‍💻 Development Team Leader — Interview Q&A
 
+> Group 5 · Former `LEADERSHIP.md`, content kept as-is, with small additions · Priority LOW for this interview (it's a fullstack IC role), but useful for "how do you keep quality high / mentor / work with the team"
+> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+> Changelog: added this header, the 30-second summary, the "tie it to your real stories" section, DORA metrics in Q13, and traps. The original 30 Q&A are unchanged.
+
+## ➕ Say it in 30 seconds
+"I keep quality high by making it automatic: linting, typed contracts and tests run in the pipeline, with a coverage gate (we used 80% in Jenkins), so reviews can focus on design and readability. I unblock early and say trade-offs out loud. I'd rather re-scope with the product owner than ship something fragile. And I spread knowledge through pairing, small PRs and written decisions, so nobody becomes a silo. For example, on the OneHome Favorites feature I worked across the front end, the backend service and the Kafka/Elasticsearch pipeline **[confirm your exact part, e.g. how you shared knowledge about the sync]**."
+
+## ➕ Tie it to your real stories (spoken interview: always answer with an example)
+| Likely question | Your story (fill the [ ] before the call) |
+|---|---|
+| How do you keep code quality high? (Q1, Q19) | Jenkins pipelines at CWI and EPAM with an **80% coverage gate** **[what you added: tests, the gate itself, review rules?]** |
+| Tell me about a complex feature you delivered end to end | OneHome **Favorites** (4 sentiments, map + list, Kafka → Elasticsearch, sync to Matrix): see `../1-java-spring-backend/java-spring-boot-essentials.md` |
+| How do you handle production incidents? | Kafka on-call at EPAM **[one concrete incident: symptom → diagnosis → fix → prevention]** |
+| How do you mentor? (Q12) | **[a junior or new joiner you onboarded or paired with; what changed]** |
+| Ownership / working without a big team | Benwer Cars: backend, data model, payments, deployment **[confirm scope]** |
+| Disagreement with a teammate or PM (Q4) | **[real example: data you brought, the compromise, the outcome]** |
+
+Use STAR: **S**ituation (1 sentence) → **T**ask → **A**ction (what *you* did, with "I") → **R**esult (number, or what changed). Keep each answer around 60–90 seconds.
+
+---
+
 ---
 
 ## 1) How do you ensure code quality in your team?
@@ -168,6 +189,7 @@
 - Delivery metrics: velocity, throughput, lead time.
 - Quality metrics: bug count, escaped defects.
 - Team health: turnover, engagement surveys.
+- ➕ **DORA metrics**: deployment frequency, lead time for changes, change failure rate, time to restore service (plus rework rate in recent DORA reports). Measure the **team/system**, never individuals.
 - Balance numbers with **qualitative feedback**.
 
 **Takeaway:** People > metrics, but metrics help identify trends.
@@ -387,3 +409,12 @@
 - Lead by example (respect, accountability).
 
 **Takeaway:** Culture eats strategy for breakfast.
+
+---
+
+## ➕ Traps and gotchas
+- Answering in generalities ("I always communicate"). Give one real example per answer.
+- Saying "we" for everything. Say what **you** did.
+- Using velocity to compare teams or people.
+- "I'd add more people to a late project" without the trade-off (Brooks's law: it often makes it later).
+- Overselling a lead title you didn't have. For an IC role, frame it as influence: reviews, mentoring, raising the bar.

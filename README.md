@@ -31,21 +31,24 @@ Files that came from the original notes were corrected in place: changes are mar
 
 ## 4. Architecture & security ([folder](4-architecture-security/))
 - [architecture-patterns.md](4-architecture-security/architecture-patterns.md): Corrected former ARCHITECTURE-PATTERNS.md: examples moved to React/Spring/ECS/SQS/Aurora, Java outbox and hexagonal, resilience patterns, Favorites CQRS example
+- [assets/](4-architecture-security/assets/): Diagrams for session-cookie vs JWT authorization flows
 - [jwt.md](4-architecture-security/jwt.md): Corrected former JWT.md: fixed Angular functional interceptor, 401 + pinned algorithms in Express, React and Spring examples
 - [owasp.md](4-architecture-security/owasp.md): Corrected former OWASP.md: updated to OWASP Top 10:2025, real SQL-injection example and fixes, Spring/React angle
 - [security-data-privacy.md](4-architecture-security/security-data-privacy.md): Secure SDLC, React + Spring security checklist, GDPR essentials, privacy engineering, breach and erasure answers
 - [storage-security.md](4-architecture-security/storage-security.md): Corrected former STORAGE-SECURITY.md: HttpOnly cookies are server-only, cookie attribute table, OIDC + PKCE, RBAC + ownership
 
-## Not yet reorganised
-- [ANGULAR.md](ANGULAR.md)
-- [JAVASCRIPT-ECMAScript.md](JAVASCRIPT-ECMAScript.md)
-- [JAVASCRIPT-QUESTIONS.md](JAVASCRIPT-QUESTIONS.md)
-- [JAVASCRIPT.md](JAVASCRIPT.md)
-- [LEADERSHIP.md](LEADERSHIP.md)
-- [NEXTJS.md](NEXTJS.md)
-- [NODEJS.md](NODEJS.md)
-- [OVERVIEW.md](OVERVIEW.md)
-- [RxJS.md](RxJS.md)
+## 5. JavaScript & Node fundamentals ([folder](5-js-node-fundamentals/))
+- [adobe-analytics-target-video.md](5-js-node-fundamentals/adobe-analytics-target-video.md): ➕ Data layer, Adobe Analytics/Web SDK (Mixpanel bridge), Target A/B without flicker, consent, HLS/DASH video
+- [assets/](5-js-node-fundamentals/assets/): Diagrams used by javascript.md (single thread, sync/async, callback queue)
+- [javascript-ecmascript.md](5-js-node-fundamentals/javascript-ecmascript.md): ✏️ Corrected: ES2015–ES2025 feature tour with fixed examples (padStart, classes, generators, flatMap)
+- [javascript-questions.md](5-js-node-fundamentals/javascript-questions.md): ✏️ Corrected: 40 core JS Q&A (TDZ, hoisting, event loop, ES2022 fixes) + ES2023–25 and output puzzles
+- [javascript.md](5-js-node-fundamentals/javascript.md): ✏️ Corrected: JS basics (dynamic typing, JIT, event loop, hoisting/TDZ, closures, prototypes, currying vs partial application)
+- [leadership.md](5-js-node-fundamentals/leadership.md): 30 team-lead Q&A plus a STAR table tying them to your real stories
+- [nodejs.md](5-js-node-fundamentals/nodejs.md): ✏️ Corrected: Node event loop phases, libuv thread pool vs network I/O, ESM/require(esm), NestJS ↔ Spring bridge
+- [src/](5-js-node-fundamentals/src/): Small runnable ES5/ES2015 snippets (hoisting, scope, closures, `this`, prototypes)
 
-## Code snippets
-- [src/](src/): small runnable ES5/ES2015 snippets (hoisting, scope, closures, `this`, prototypes)
+## Other notes (original files, moved unchanged) ([folder](other/))
+- [angular.md](other/angular.md): Original Angular notes (unchanged; not in the Applica stack)
+- [nextjs.md](other/nextjs.md): Original Next.js notes (unchanged)
+- [overview.md](other/overview.md): Original team-lead tech overview (unchanged): branching, test pyramid, observability pillars
+- [rxjs.md](other/rxjs.md): Original RxJS notes (unchanged)

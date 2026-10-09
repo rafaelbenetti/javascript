@@ -1,4 +1,25 @@
 # ECMAScript releases
+
+> Group 5 · Corrected version of the former `JAVASCRIPT-ECMAScript.md` · Priority LOW–MEDIUM (know the *year* of the headline features)
+> Legend: **✏️ FIXED** = corrected · **➕ ADDED** = new · unmarked = original
+
+## What was fixed (changelog)
+1. **String padding**: `'5'.padStart(4, '0')` gives `'0005'` and `padEnd` gives `'5000'` (4 characters, not 5). The redeclared `let str` was a SyntaxError.
+2. **Index**: `trimStart/trimEnd` was listed under both ES2019 and ES2020. It's **ES2019** only.
+3. **Classes**: `getFullName()` read `this.firstName`, but the constructor set `this._firstName`, so it returned `"undefined undefined"`.
+4. **Generator**: `for…of numGenerator` referenced an undefined variable, and iterating an infinite generator never ends. Now uses `take`/`break`.
+5. **Redeclarations**: several snippets redeclared `let`/`const` in the same scope (SyntaxError). Renamed.
+6. **Promise.any**: missing comma between array elements (SyntaxError).
+7. **Promise.allSettled** wording: "The new Promise.all() was rejected…" → `Promise.all` (ES2015) rejects on the first rejection; `allSettled` never rejects.
+8. **flatMap**: the example only worked by accident (`Math.round([7.1])` coerces the array to a string). Replaced with a real one-level flatten.
+9. **async functions**: the example returned a never-settling promise and used top-level `await` outside a module.
+10. **Shared memory** `TODO` filled in (SharedArrayBuffer + Atomics).
+11. **Top-level await** example awaited a `Response` as if it were a string.
+12. **➕ Added** ES2023, ES2024, ES2025 (and what's next), plus the 30-second summary, Q&A and traps.
+
+## ➕ Say it in 30 seconds
+"ECMAScript is the standard behind JavaScript, released yearly by TC39 since ES2015. ES2015 was the big one: let/const, arrow functions, classes, modules, promises, destructuring. Then came async/await in 2017, optional chaining and nullish coalescing in 2020, top-level await and private fields in 2022, immutable array methods like `toSorted` in 2023, `Object.groupBy` in 2024, and iterator helpers and new Set methods in 2025. TypeScript and Babel let you write the latest syntax and down-level it for your browser targets."
+
 - ECMAScript is a standard for a scripting language. It specifies the core features that a scripting language should provide and how those features should be implemented.
 
 * [ECMAScript2015](#ecmascript2015)
@@ -32,7 +53,6 @@
     * BigInt
     * globalThis
     * Promise.allSettled()
-    * trimStart() and trimEnd()
     * The nullish coalescing operator
     * Optional chaining
     * Dynamic import
@@ -47,6 +67,10 @@
     * Error cause
     * Top-level await
     * Private slots and methods
+* ➕ [ECMAScript2023](#ecmascript2023): toSorted/toReversed/toSpliced/with, findLast, hashbang
+* ➕ [ECMAScript2024](#ecmascript2024): Object.groupBy, Promise.withResolvers, Array.fromAsync, RegExp `v` flag
+* ➕ [ECMAScript2025](#ecmascript2025): Iterator helpers, Set methods, RegExp.escape, Promise.try, JSON modules
+* ➕ [Interview Q&A and traps](#interview-qa-and-traps)
 
 # ECMAScript2015
 
@@ -111,7 +135,8 @@ class Person {
     }
   
     getFullName() {
-        return `${this.firstName} ${this.lastName}`;
+        return `${this._firstName} ${this._lastName}`; // ✏️ FIXED: was this.firstName → "undefined undefined"
+
     }
 
     static create(firstName, lastName) {
@@ -119,7 +144,9 @@ class Person {
     }
 }
 
-var person = Person.create('Rafael', 'Benetti');
+const person = Person.create('Rafael', 'Benetti');
+person.getFullName(); // 'Rafael Benetti'
+// ➕ Today: prefer real privacy with #firstName (ES2022, see below) over the _underscore convention.
 ```
 
 ## Generator
@@ -143,10 +170,12 @@ const sequence = fibonacci();
 console.log(sequence.next().value);
 console.log(sequence.next().value);
 
-// You can also access it with for loop.
-for(let num of numGenerator) {
+// ✏️ FIXED: `numGenerator` didn't exist, and fibonacci() is infinite, so break out of the loop.
+for (const num of fibonacci()) {
+    if (num > 50) break;
     console.log(num);
-};
+}
+// ➕ ES2025 iterator helpers: fibonacci().take(10).toArray()
 ```
 
 # ECMAScript2016
@@ -155,10 +184,10 @@ for(let num of numGenerator) {
 - The exponentiation operator (**) raises the first operand to the power of the second operand.
 
 ```js
-let x = 5 ** 2; 
+let x = 5 ** 2; // 25
 
 // Old way
-let x = Math.pow(5, 2); 
+let y = Math.pow(5, 2); // ✏️ renamed (redeclaring `let x` is a SyntaxError)
 ```
 
 ## Exponentiation assignment
@@ -180,12 +209,11 @@ fruits.includes('mango');
 ## String padding
 ```js
 // padStart
-let str = '5';
-str = str.padStart(4, 0); // 00005
+'5'.padStart(4, '0'); // ✏️ '0005' (target length 4, not 5)
 
 // padEnd
-let str = '5';
-str = str.padEnd(4, 0); // 50000
+'5'.padEnd(4, '0');   // ✏️ '5000'
+'abc'.padStart(6);    // '   abc' (default pad is a space)
 ```
 
 ## Object.entries
@@ -220,16 +248,26 @@ Object.values(person);
 - Async functions always return Promises.
 - Await can only be used inside a function that is marked as async.
 ```ts
-async function get(url: string) {
-  return new Promise((resolve, reject) => {
-  });
+// ✏️ FIXED: the old example returned a promise that never settled.
+async function getUser(url: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`); // a throw becomes a rejected promise
+  return res.json();                                  // a return value becomes a resolved promise
 }
 
-const user = await get('user');
+// inside another async function (or at module top level since ES2022)
+try {
+  const user = await getUser('/api/user');
+} catch (e) { /* handle */ }
 ```
 ## shared memory
+- ✏️ (was TODO) **SharedArrayBuffer** lets the main thread and Web Workers / worker_threads share the same bytes. **Atomics** gives race-free reads and writes plus `wait`/`notify`.
+- In browsers it requires **cross-origin isolation** (`Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`), a Spectre mitigation.
 ```js
-// TODO
+const sab = new SharedArrayBuffer(4);
+const counter = new Int32Array(sab);
+worker.postMessage(sab);          // shared, not copied
+Atomics.add(counter, 0, 1);       // atomic increment visible to the worker
 ```
 
 # ECMAScript2018
@@ -291,7 +329,7 @@ const entries = Object.entries(obj);
 const objFromEntries = Object.fromEntries(entries);
 ```
 ## trimStart() and trimEnd()
-- They have the same functionality as trimLeft() and trimRight()
+- They have the same functionality as trimLeft() and trimRight() (✏️ those remain as aliases). **ES2019.**
 ```js
 const name = '   Rafael   ';
 name.trimStart();
@@ -304,14 +342,16 @@ name.trimEnd();
 const arr = ['a', 'b', ['c', 'd']];
 const flattened = arr.flat(); // => ["a", "b", "c", "d"]
 
-const arr = ['a', 'b', ['c', ['d']]];
-const flattened = arr.flat(Infinity); // => ["a", "b", "c", "d"]
+const deep = ['a', 'b', ['c', ['d']]];    // ✏️ renamed (redeclaration)
+const flatDeep = deep.flat(Infinity); // => ["a", "b", "c", "d"]
 ```
 
 - The flatMap() method combines map() and flat() into one method.
 ```js
-const arr = [[7.1], [8.1], [9.1]];
-const flattened = arr.flatMap(value => Math.round(value)); // [7, 8, 9] 
+// ✏️ FIXED: map each item to an array; flatMap flattens ONE level.
+const sentences = ['hello world', 'good morning'];
+sentences.flatMap(s => s.split(' ')); // ['hello', 'world', 'good', 'morning']
+// handy for filter+map in one pass: items.flatMap(x => x.ok ? [x.value] : [])
 ```
 ## Optional catch binding
 ```js
@@ -327,18 +367,20 @@ catch { // no (ex) needed anymore
 
 ## BigInt
 ```js
-const aBigInteger = 98765432123456789n;
-const aBigInteger = BigInt("98765432123456789");
+const big1 = 98765432123456789n;
+const big2 = BigInt("98765432123456789"); // ✏️ renamed (redeclaration)
+// ➕ Can't mix with Number: 1n + 1 → TypeError. JSON.stringify(1n) throws.
 ```
 ## globalThis
 - The globalThis object provides a standard way of accessing the global object across different JavaScript environments. So, now you can write your code in a consistent way, without having to check the current running environment. Remember, however, to minimize the use of global items, since it is considered a bad programming practice.
 
 ## Promise.allSettled()
-- The new Promise.all() was rejected if any of the promises had reject status.
+- ✏️ `Promise.all()` (ES2015) rejects as soon as **any** promise rejects.
 - The new Promise.allSettled() combinator waits for all promises to be settled, regardless of their result.
 ```js 
 const promises = [fetch("/users"), fetch("/roles")];
 const allResults = await Promise.allSettled(promises);
+// ➕ [{status:'fulfilled', value: Response}, {status:'rejected', reason: Error}]
 ```
 ## The nullish coalescing operator
 ```js
@@ -384,22 +426,22 @@ x ?? (x = y);
 ```
 ## Numeric Separators (1_000)
 ```js
-let fee = 123_00;       // $123 (12300 cents, apparently)
-let fee = 12_300;       // $12,300 (woah, that fee!)
-let amount = 12345_00;  // 12,345 (1234500 cents, apparently)
-let amount = 123_4500;  // 123.45 (4-fixed financial)
-let amount = 1_234_500; // 1,234,500
+// ✏️ separators are purely visual; one declaration per name
+const cents = 123_00;      // 12300
+const fee = 12_300;        // 12300
+const amount = 1_234_500;  // 1234500
+const mask = 0b1010_0001;  // also works in binary/hex
 ```
 ## Promise.any & AggregateError
 ```js
 Promise.any([
-  fetch('users')
+  fetch('users'),   // ✏️ FIXED: missing comma
   fetch('products')
 ]).then((first) => {
   // Any of the promises was fulfilled.
 }).catch((error) => {
   // All of the promises were rejected.
-  console.log(error);
+  console.log(error instanceof AggregateError, error.errors); // ➕ array of reasons
 });
 ```
 ## String.prototype.replaceAll
@@ -427,8 +469,9 @@ throw new Error('I am the result of another error', { cause: error })
 
 ## Top-level await
 ```js
-const serviceName = await fetch('users')
-const service = await import(`/services/${serviceName}.js`)
+// ✏️ FIXED: fetch() resolves to a Response, not a string. Only in ES modules.
+const { serviceName } = await (await fetch('/config.json')).json();
+const service = await import(`/services/${serviceName}.js`);
 ```
 
 ## Private slots and methods
@@ -464,3 +507,67 @@ class Human {
 const human = new Human()
 human.#setName('Amy') // ERROR!
 ```
+
+# ECMAScript2023
+
+## Change array by copy
+```js
+const nums = [3, 1, 2];
+nums.toSorted();          // [1, 2, 3]; nums is unchanged (great for React state)
+nums.toReversed();        // [2, 1, 3]
+nums.with(0, 99);         // [99, 1, 2]
+nums.toSpliced(1, 1);     // [3, 2]
+```
+## findLast / findLastIndex
+```js
+[1, 2, 3, 4].findLast(n => n % 2 === 1); // 3
+```
+- Also: hashbang `#!/usr/bin/env node` grammar, Symbols as WeakMap keys.
+
+# ECMAScript2024
+
+```js
+Object.groupBy(listings, l => l.city);           // { Madrid: [...], Lisbon: [...] }
+Map.groupBy(listings, l => l.priceBand);
+
+const { promise, resolve, reject } = Promise.withResolvers();
+
+const rows = await Array.fromAsync(asyncIterable);
+```
+- Also: RegExp `v` flag (set notation), `String.prototype.isWellFormed`, resizable `ArrayBuffer`, `Atomics.waitAsync`.
+
+# ECMAScript2025
+
+```js
+// Iterator helpers: lazy, work on any iterator
+const firstTen = fibonacci().filter(n => n % 2 === 0).take(10).toArray();
+
+// Set methods
+new Set([1, 2, 3]).union(new Set([3, 4]));        // {1,2,3,4}
+new Set([1, 2, 3]).intersection(new Set([2, 3])); // {2,3}
+new Set([1, 2, 3]).difference(new Set([1]));      // {2,3}
+
+RegExp.escape('a.b*c');                 // safe to embed user input in a RegExp
+Promise.try(() => maybeSyncOrAsync());  // sync throws become rejections
+
+import config from './config.json' with { type: 'json' }; // import attributes / JSON modules
+```
+- Also: `Float16Array`, RegExp modifiers, duplicate named capture groups.
+- **Coming next (Stage 3/4, verify before quoting):** `Temporal` (modern date/time, already shipping in some browsers), explicit resource management (`using`), `Error.isError`, `Math.sumPrecise`.
+
+# Interview Q&A and traps
+
+**Q: What was the most important ES version?** ES2015 (ES6): modules, classes, let/const, arrows, promises, destructuring, spread, template literals, Map/Set, symbols, iterators/generators. Everything after is yearly and incremental.
+
+**Q: How does a new feature get into JavaScript?** TC39 proposals go through Stage 0 → 4. Stage 4 means two shipping implementations plus tests, and the feature lands in the next yearly edition. Engines often ship features at Stage 3.
+
+**Q: How do you use new features on old browsers?** Syntax is transpiled (TypeScript, Babel, SWC, esbuild) to the `target`/browserslist. APIs need polyfills (core-js). Syntax can't be polyfilled; APIs can.
+
+**Q: `toSorted` vs `sort`?** `sort` mutates in place (a bug in React state or props); `toSorted` returns a copy.
+
+**Traps**
+- `sort()` without a comparator sorts by string: `[10, 9, 1].sort()` gives `[1, 10, 9]`.
+- `??` vs `||`: `0 || 42` is 42, but `0 ?? 42` is 0.
+- Optional chaining on assignment (`a?.b = 1`) is a SyntaxError.
+- Top-level `await` only works in ES modules, and it blocks dependants of that module.
+- `#private` isn't the same as TypeScript's `private` (the TS one is compile-time only).

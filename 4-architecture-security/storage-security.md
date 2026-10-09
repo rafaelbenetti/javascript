@@ -137,6 +137,8 @@ const step = sessionStorage.getItem("step");
   4. Browser sends cookie automatically with each request.
   5. Server validates session ID → grants access.
 
+  ➕ Diagram (moved from the old `src/assets/`): ![Cookies + session authorization](assets/cookies-session-authorization.png)
+
 - **Pros:** Secure if cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
 - **Cons:** Doesn’t scale well in distributed systems unless sessions are shared (Redis).
 

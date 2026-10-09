@@ -41,6 +41,8 @@
 
 # 🔄 JWT Authentication Flow
 
+➕ Diagram (moved from the old `src/assets/`): ![JWT authorization](assets/jwt-authorization.png)
+
 ### 1. **Login / Auth**
 
 -   User logs in (username/password, SSO, OAuth2).
