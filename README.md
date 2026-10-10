@@ -37,9 +37,9 @@ Every topic file starts with a **Say it in 1 minute** summary, then core concept
 
 ## [ ] 5. JavaScript & Node fundamentals ([folder](5-js-node-fundamentals/))
 - [ ] [adobe-analytics-target-video.md](5-js-node-fundamentals/adobe-analytics-target-video.md): Data layer, Adobe Analytics and the Web SDK (Mixpanel bridge), Target A/B without flicker, consent, and HLS/DASH video
-- [ ] [javascript-ecmascript.md](5-js-node-fundamentals/javascript-ecmascript.md): ES2015–ES2025 feature tour (padStart, classes, generators, flatMap)
-- [ ] [javascript-questions.md](5-js-node-fundamentals/javascript-questions.md): Core JavaScript Q&A (TDZ, hoisting, the event loop) plus ES2023–25 and output puzzles
-- [ ] [javascript.md](5-js-node-fundamentals/javascript.md): JavaScript basics (dynamic typing, JIT, the event loop, hoisting and the TDZ, closures, prototypes, currying and partial application)
+- [x] [javascript-ecmascript.md](5-js-node-fundamentals/javascript-ecmascript.md): ES2015–ES2025 feature tour (padStart, classes, generators, flatMap)
+- [x] [javascript-questions.md](5-js-node-fundamentals/javascript-questions.md): Core JavaScript Q&A (TDZ, hoisting, the event loop) plus ES2023–25 and output puzzles
+- [x] [javascript.md](5-js-node-fundamentals/javascript.md): JavaScript basics (dynamic typing, JIT, the event loop, hoisting and the TDZ, closures, prototypes, currying and partial application)
 - [ ] [leadership.md](5-js-node-fundamentals/leadership.md): 30 team-lead Q&A plus a STAR table tying them to your real stories
 - [ ] [nodejs.md](5-js-node-fundamentals/nodejs.md): Node event-loop phases, the libuv thread pool versus network I/O, ESM and require(esm), and the NestJS to Spring bridge
 - [ ] [overview.md](5-js-node-fundamentals/overview.md): Team-lead tech primer beside the leadership Q&A: trunk-based branching, the test pyramid and the testing trophy, observability pillars and OpenTelemetry, and DORA metrics
