@@ -10,9 +10,9 @@ Every topic file starts with a **Say it in 1 minute** summary, then core concept
 - ⬜ [java-spring-boot-essentials.md](1-java-spring-backend/java-spring-boot-essentials.md): DI/IoC, REST endpoint with validation and ProblemDetail, Spring Security 6, config, NestJS ↔ Spring mapping
 - ⬜ [jpa-hibernate-transactions.md](1-java-spring-backend/jpa-hibernate-transactions.md): Entities, lazy vs eager, N+1 fixes, LazyInitializationException, @Transactional rules, locking, migrations
 - ⬜ [mysql-aurora-sql-performance.md](1-java-spring-backend/mysql-aurora-sql-performance.md): Indexes, EXPLAIN, sargable queries, keyset pagination, InnoDB isolation and locking, Aurora MySQL
-- ⬜ [rest-api-design.md](1-java-spring-backend/rest-api-design.md): Resources, verbs, status codes, ProblemDetail, pagination, idempotency keys, versioning, OpenAPI, CORS
-- ⬜ [spring-boot-testing.md](1-java-spring-backend/spring-boot-testing.md): JUnit 5, Mockito, @WebMvcTest, @DataJpaTest, Testcontainers with @ServiceConnection, JaCoCo gate
-- ⬜ [spring-boot.md](1-java-spring-backend/spring-boot.md): Spring Q&A on scopes, Security 6, transactions, and ProblemDetail, plus validation, DTOs, N+1, testing, Boot 3, and the NestJS bridge
+- ✅ [rest-api-design.md](1-java-spring-backend/rest-api-design.md): Resources, verbs, status codes, ProblemDetail, pagination, idempotency keys, versioning, OpenAPI, CORS
+- ✅ [spring-boot-testing.md](1-java-spring-backend/spring-boot-testing.md): JUnit 5, Mockito, @WebMvcTest, @DataJpaTest, Testcontainers with @ServiceConnection, JaCoCo gate
+- ✅ [spring-boot.md](1-java-spring-backend/spring-boot.md): Spring Q&A on scopes, Security 6, transactions, and ProblemDetail, plus validation, DTOs, N+1, testing, Boot 3, and the NestJS bridge
 
 ## ✅ 2. React frontend ([folder](2-react-frontend/))
 - ✅ [accessibility-responsive.md](2-react-frontend/accessibility-responsive.md): WCAG 2.2 AA, semantic HTML, ARIA rules, focus management, mobile-first CSS, container queries, responsive images, Core Web Vitals
