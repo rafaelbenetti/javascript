@@ -1,6 +1,7 @@
 # JPA / Hibernate and Transactions (Spring Data JPA, Hibernate 6)
 
-> Group 1 · Priority HIGH · Prep guide Q17 · Status: new file
+> Group 1 · Priority HIGH
+> The single home for JPA, Hibernate and transaction rules. Related: [core concepts](java-spring-boot-essentials.md) · [interview index](spring-boot.md) · [testing repositories](spring-boot-testing.md#repository-slice-datajpatest) · [consistency across services](java-microservices.md)
 
 ## Say it in 1 minute
 "JPA is the specification, and Hibernate is the implementation. Entities map onto tables, and Spring Data turns a method name into a query. The two things that hurt in production are fetching and transactions. I keep associations lazy, and when a screen needs parents with their children I load them in one query with JOIN FETCH or an EntityGraph. Otherwise each parent fires another select and you get the N+1 problem. @Transactional belongs on the service. Spring applies it with a proxy, so a call from inside the same class skips it, and by default only unchecked exceptions roll the work back. I have lived with the same questions on Benwer Cars using Drizzle: the ORM does not pick the query plan or the transaction boundary for you."
@@ -40,14 +41,20 @@ public class Listing {
 - Entities shouldn't be Java `record`s (they need mutability, a no-arg constructor and proxies). Records are perfect for DTOs and projections.
 
 ### Persistence context and entity states
-The persistence context is an identity map for one transaction. Load listing 42 twice and you get the same Java instance, which is how Hibernate avoids a second SELECT and how two copies of the row can't drift inside the unit of work. On flush it compares fields with the snapshot taken at load time and writes an UPDATE only for what changed, so `save()` is unnecessary while the entity is managed. When the transaction ends the context closes and the objects are detached: they still hold data, but they no longer track changes or lazy loads. A Node ORM session or a Drizzle transaction is the same boundary, just with less hidden snapshotting.
+The persistence context is the set of entity instances an `EntityManager` is currently managing, and in Spring it lives for one transaction. It does three jobs:
+
+1. **Identity map.** It keys every loaded entity by type and id. Ask for listing 42 twice in the same transaction and the second lookup is answered from the map: same Java instance, no second SELECT. That also guarantees there is only one in-memory copy of each row within the unit of work, so two copies can't drift apart.
+2. **Snapshots and dirty checking.** When an entity is loaded, Hibernate keeps a copy of its original field values. At **flush** time (before commit, and before a query that might be affected) it compares each managed entity with its snapshot and generates an UPDATE only for the columns that changed. That's why `save()` is unnecessary while an entity is managed.
+3. **Write-behind.** Inserts, updates and deletes are queued and sent at flush, in an order that respects foreign keys, rather than one statement per setter call.
+
+When the transaction commits, the context is flushed and closed. Its entities become **detached**: they still hold their data, but nothing tracks their changes any more, and their unloaded lazy relations have no open session to load from. Merging a detached entity copies its state onto a managed instance in a new context.
 
 - **Persistence context** = first-level cache plus change tracking, per transaction (per `EntityManager`).
 - States: **transient** (new, unknown) → **managed** (loaded or persisted, changes auto-flushed) → **detached** (context closed) → **removed**.
 - **Dirty checking**: changing a managed entity inside a transaction is enough. Hibernate issues the `UPDATE` on flush or commit, with no `save()` needed.
 
 ### Spring Data JPA
-You write an interface and no implementation. At startup Spring Data parses method names (`findByOwnerIdAndPriceLessThan`) into a query and creates a JDK proxy that runs it. `@Query` skips the parser and uses your JPQL. Derived methods are the equivalent of a thin query-builder call in Drizzle, with the method name as the query.
+You write an interface and no implementation. At startup Spring Data parses method names (`findByOwnerIdAndPriceLessThan`) into a query and creates a JDK proxy that runs it. `@Query` skips the parser and uses your JPQL. The repository bean is itself a proxy, so its methods are transactional and get `@Repository` exception translation.
 
 ```java
 public interface ListingRepository extends JpaRepository<Listing, Long> {
@@ -82,7 +89,7 @@ listings.forEach(l -> l.getOwner().getName());    // +N queries, one per listing
 The lazy proxy remembers the session that loaded it. After commit that session is closed, so the proxy has nowhere to send the SELECT and throws. It usually shows up when Jackson serialises an entity in the controller and touches a relation you didn't fetch. **Fix:** fetch what you need in the service, inside the transaction, and map to a DTO there. `spring.jpa.open-in-view` is **true by default** (Boot logs a warning). It binds the session for the whole request, which hides the exception by letting Jackson run queries during rendering, and it holds a connection until the response is done. Many teams set it to `false`.
 
 ### `@Transactional`
-Boot proxies the service with a subclass (CGLIB). The proxy starts a transaction, calls your method, then commits, or rolls back. A call written as `this.other()`, or a `private` method, hits the real object and never enters the proxy, so no transaction starts. Nest interceptors have the same hole: they only see calls that come in from outside the class.
+`@Transactional` is around advice on a proxy: the proxy starts (or joins) a transaction, calls your method, then commits or rolls back. How the proxy is created, and why a self-call, a `private` method or a `final` method never enters it, is explained once in [bean lifecycle and proxies](java-spring-boot-essentials.md#bean-lifecycle-and-proxies). This section is the single home for the transaction rules themselves.
 
 ```java
 @Service
@@ -99,12 +106,13 @@ public class BookingService {
 }
 ```
 Rules to know cold:
-- **Proxy-based (AOP).** Only calls **coming through the proxy** are transactional. A `this.otherMethod()` self-invocation **bypasses** it, and so do `private` methods (and `final` ones under CGLIB).
+- **Proxy-based.** Only calls coming through the proxy are transactional. Self-invocation, `private` and `final` methods bypass it ([why](java-spring-boot-essentials.md#bean-lifecycle-and-proxies)).
 - **Rollback**: by default only on **unchecked** exceptions (`RuntimeException`, `Error`). Checked exceptions **commit** unless you set `@Transactional(rollbackFor = Exception.class)`.
 - Catching an exception inside the method and swallowing it means no rollback.
 - **Propagation**: `REQUIRED` (default: join existing or create), `REQUIRES_NEW` (suspend outer, independent commit, e.g. audit log), `MANDATORY`, `SUPPORTS`, `NOT_SUPPORTED`, `NEVER`, `NESTED` (savepoint).
 - **Isolation**: `READ_UNCOMMITTED` < `READ_COMMITTED` < `REPEATABLE_READ` (**MySQL InnoDB default**) < `SERIALIZABLE`. Postgres defaults to READ_COMMITTED.
-- Put it on the **service** layer, not controllers. Keep transactions short, and **no remote HTTP calls inside a transaction**: they hold a DB connection and can't be rolled back.
+- Put it on the **service** layer, not controllers. For transactions that span services, local transactions don't help: see sagas in [microservices](java-microservices.md).
+- Keep the boundary on the service method that represents one use case. Keep transactions short, and **no remote HTTP calls inside a transaction**: they hold a DB connection and can't be rolled back.
 - Spring Data repository methods are already transactional individually (reads are `readOnly`).
 
 ### Concurrency control

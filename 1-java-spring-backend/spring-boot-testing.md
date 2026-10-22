@@ -1,6 +1,7 @@
 # Testing Spring Boot Services (JUnit 5, Mockito, slices, Testcontainers)
 
-> Group 1 · Priority HIGH · Prep guide Q19 · Status: new file
+> Group 1 · Priority HIGH
+> The single home for testing. Related: [core concepts](java-spring-boot-essentials.md) · [interview index](spring-boot.md) · [JPA](jpa-hibernate-transactions.md) · [security](spring-security.md) · [build tools](java-spring-boot-essentials.md#build-and-packaging)
 
 ## Say it in 1 minute
 "I follow the test pyramid, and the shape is the point. Most tests are fast unit tests on the service, JUnit 5 and Mockito, with the mocks passed through the constructor so nothing starts a Spring context. Above that I use slice tests. WebMvcTest with MockMvc checks status codes, validation, and JSON without booting a database. DataJpaTest checks repository queries against a real slice of JPA. Only a few tests are full SpringBootTest integration tests, and those talk to a real MySQL started by Testcontainers. JaCoCo measures coverage and Jenkins enforces it as a gate. On OneHome I took front-end coverage from about 30 to 40 percent up to 80 percent and put that gate in CI so it could not slide back. The same idea applies on the backend. The percentage is a floor. The assertions are what tell you the behaviour is actually protected."
@@ -70,7 +71,7 @@ class ListingControllerTest {
     }
 }
 ```
-With Spring Security on the classpath, add `@WithMockUser` or `.with(jwt())` from `spring-security-test`. Otherwise you get 401s.
+With Spring Security on the classpath, add `@WithMockUser` or `.with(jwt())` from `spring-security-test`. Otherwise you get 401s. The security setup itself is in [spring-security.md](spring-security.md).
 
 ### Repository slice: `@DataJpaTest`
 This slice starts JPA and your repositories only, and wraps each test in a transaction that rolls back, so tests don't have to clean rows. `@AutoConfigureTestDatabase(replace = NONE)` refuses the embedded H2 and uses the database you configured. `@ServiceConnection` reads the Testcontainers JDBC URL and registers a `DataSource`, which is what `@DynamicPropertySource` used to do by hand. You want a real MySQL here because a custom query can pass on H2 and fail on InnoDB's dialect.
@@ -104,12 +105,12 @@ class BookingFlowIT {
     @Test void createAndFetchBooking() { ... }
 }
 ```
-Use these sparingly, because they're slow (the full context starts). Spring caches the context between tests with identical configuration, and every distinct `@MockitoBean` combination creates a new context.
+Use these sparingly, because they're slow.
 
 ### Other tools
 Contract tests (Pact or Spring Cloud Contract) pin the JSON the React app expects, so a renamed field fails CI instead of production. WireMock stands in for a downstream HTTP API. Awaitility polls until an async consumer has written, instead of `Thread.sleep`. JaCoCo instruments bytecode and `jacoco:check` fails the Maven build under the threshold. The gate belongs in Jenkins. The assertions still have to check behaviour, or the percentage is just lines executed.
 
-- **Contract tests**: Spring Cloud Contract or Pact, so the React/BFF consumer and the Spring producer agree on the API. Or an OpenAPI spec plus generated typed clients (you used OpenAPI-generated clients on Benwer Cars).
+- **Contract tests** (more on why in [microservices](java-microservices.md)): Spring Cloud Contract or Pact, so the React/BFF consumer and the Spring producer agree on the API. Or an OpenAPI spec plus generated typed clients (you used OpenAPI-generated clients on Benwer Cars).
 - **External HTTP**: WireMock / `MockRestServiceServer`.
 - **Messaging**: Testcontainers for Kafka or LocalStack (SQS/SNS), and Awaitility for async assertions.
 - **Coverage**: the JaCoCo Maven/Gradle plugin, with `jacoco:check` failing the build below a threshold. Jenkins publishes the report, and Sonar has a quality gate.

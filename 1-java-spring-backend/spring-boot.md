@@ -1,315 +1,123 @@
-# 🌱 Spring (Java) Prep — Overview + Top 20 Interview Q&A
+# 🌱 Spring (Java) Prep — Index + Interview Q&A
 
 > Group 1 · Priority HIGH
-> Deep dives: `java-spring-boot-essentials.md`, `jpa-hibernate-transactions.md`, `spring-boot-testing.md`
+> This file is the index and the short spoken answers. Each answer links to the one file that explains the topic in depth.
+
+## Where everything lives
+
+| File | Its one job |
+|---|---|
+| [spring-boot-fundamentals.md](spring-boot-fundamentals.md) | Code-free primer: read this first |
+| [java-spring-boot-essentials.md](java-spring-boot-essentials.md) | Core concepts: IoC, DI, stereotypes, scopes, bean lifecycle and proxies, auto-configuration, configuration and profiles, build and packaging, request pipeline, REST and errors, MVC vs WebFlux, observability, the NestJS bridge, and the OneHome STAR story |
+| [spring-security.md](spring-security.md) | Authentication, authorization, the filter chain, JWT, passwords, sessions vs tokens, CORS, CSRF, method security, ownership |
+| [jpa-hibernate-transactions.md](jpa-hibernate-transactions.md) | Entities, persistence context, Spring Data, N+1, `@Transactional` rules, locking, migrations |
+| [spring-boot-testing.md](spring-boot-testing.md) | Unit tests, slices, Testcontainers, integration tests, coverage gates |
+| [java-microservices.md](java-microservices.md) | Microservices, Spring Cloud, sagas, resilience, tracing across services |
 
 ## Say it in 1 minute
 "Spring Boot is Spring with the decisions already made: auto-configuration, starters, and an embedded server, so the service is one jar. The IoC container creates the beans and wires them through the constructor, which keeps dependencies visible and lets a unit test pass fakes. A request comes through the security filter chain, a thin RestController that validates a DTO, a transactional service, and a Spring Data JPA repository. Errors are mapped once, in a RestControllerAdvice that returns ProblemDetail. Boot 3 needs Java 17 or newer and the jakarta namespace. My day-to-day backend is NestJS: modules, dependency injection, decorators, and guards. The end-to-end example I use is OneHome Favorites and sentiments, one endpoint filtered by sentiment, an Elasticsearch read model fed by Kafka, and a sync back to the external MLS. The STAR write-up is in the essentials notes."
 
----
-
-## 📖 Quick Overview
-
-- **Spring Framework** → Java framework for building enterprise apps.
-- **Spring Boot** → opinionated extension of Spring for **rapid development** with minimal configuration.
-
-### 🔹 Core Features
-
-- **Dependency Injection (DI)** → Inversion of Control (IoC) container.
-- **Aspect-Oriented Programming (AOP)** → cross-cutting concerns (logging, security, **transactions: `@Transactional` is implemented with AOP proxies**).
-- **Spring MVC** → Model-View-Controller web apps (**for APIs: `@RestController` returning JSON**).
-- **Spring Data JPA** → data access layer (**Hibernate is the default JPA provider**).
-- **Spring Security** → authentication, authorization, JWT, OAuth2.
-- **Spring Boot Starters** → pre-configured dependencies.
-- **Spring Actuator** → production monitoring endpoints.
-- **Spring Cloud** → microservices, service discovery, config server, circuit breakers.
-
-### 🔹 Benefits
-
-- Loose coupling via DI.
-- Convention over configuration.
-- Huge ecosystem.
-- Cloud-native & microservice friendly.
-
-### 🔹 Current versions (Oct 2026)
+### Current versions (Oct 2026)
 - **Spring Boot 3.x** requires **Java 17+** and Jakarta EE (`javax.*` → `jakarta.*`). Spring Boot 4 / Spring Framework 7 were released in Nov 2025, but most production code you'll meet is 3.x.
-- Java 21 LTS → virtual threads (`spring.threads.virtual.enabled=true`, Boot 3.2+).
+- Java 21 LTS brings virtual threads (Boot 3.2+).
 
 ---
 
 ## ❓ Top 20 Questions & Answers
 
 ### 1) What is the difference between Spring and Spring Boot?
+Spring is the framework: the IoC container plus modules for web, data, security and more. Spring Boot is an opinionated layer on top that removes setup work: auto-configuration that registers sensible beans based on the classpath and backs off when you define your own, starters with a managed set of compatible versions, an embedded server, and Actuator. Modern plain Spring is configured in Java too, so the real difference isn't XML versus annotations. It's that with Boot you only configure what's different about your application. → [Auto-configuration internals](java-spring-boot-essentials.md#how-auto-configuration-works-internally)
 
-- **Spring** → full framework, lots of XML/Java config.
-- **Spring Boot** → simplifies setup with auto-configuration, embedded server (Tomcat/Jetty), opinionated defaults.
-- Auto-config is conditional (`@ConditionalOnClass`, `@ConditionalOnMissingBean`). Define your own bean and Boot's default backs off. Boot reads a list of auto-configuration classes and skips any whose condition fails, which is why adding a starter "just works" and why your own `DataSource` bean replaces Boot's.
+### 2) Explain Dependency Injection (DI).
+A class declares what it needs, and the container supplies it, instead of the class creating its own collaborators. Constructor injection is preferred: dependencies are explicit and `final`, the object is never half-built, and a unit test can pass mocks directly. Setter injection suits optional dependencies. Field injection hides dependencies and should be avoided. → [IoC and DI](java-spring-boot-essentials.md#ioc-and-di)
 
----
-
-### 2) Explain Dependency Injection (DI) in Spring.
-
-- Design pattern → objects depend on abstractions, not implementations.
-- Spring container injects dependencies via:
-  - **Constructor Injection** (preferred).
-  - **Setter Injection**.
-  - **Field Injection** (not recommended).
-- **Why constructor:** `final` fields, explicit dependencies, the object is never half-initialised, easy to unit test with mocks, and too many params is a visible smell. With one constructor, `@Autowired` is optional.
-- **How:** the container looks at the constructor parameter types, finds the matching beans, and calls `new` for you. NestJS provider construction is the same lookup.
-
-```java
-@Service
-public class ListingService {
-    private final ListingRepository repo;
-    public ListingService(ListingRepository repo) { this.repo = repo; }
-}
-```
-
----
-
-### 3) What is Inversion of Control (IoC) in Spring?
-
-- Principle where object creation is delegated to container instead of hard-coding with `new`.
-- Managed by **ApplicationContext** in Spring.
-- **How:** at startup the context scans the main class's package, registers bean definitions, then creates singletons in dependency order and caches them. Later requests call methods on those same instances. They are not constructed per request.
-
----
+### 3) What is Inversion of Control (IoC)?
+The principle that object creation and wiring move from your code to the container. The `ApplicationContext` scans for bean definitions at startup, creates singletons in dependency order, and caches them, so later requests reuse the same instances. → [IoC and DI](java-spring-boot-essentials.md#ioc-and-di)
 
 ### 4) What are Spring Boot Starters?
-
-- Pre-built dependency descriptors for common use cases.
-- Example: `spring-boot-starter-web` (Tomcat, MVC, JSON).
-  👉 Save time, reduce boilerplate config.
-- Others to name: `-data-jpa`, `-validation` (needed for `@Valid`!), `-security`, `-oauth2-resource-server`, `-actuator`, `-test`.
-- A starter is a POM, not a framework. It pulls libraries onto the classpath, and auto-configuration reacts to those classes being present. Without `spring-boot-starter-validation` there is no validator bean, so `@Valid` is silently ignored.
-
----
+Dependency bundles, one per capability, such as web, data JPA, validation, security, OAuth2 resource server, Actuator and test. A starter contains no logic. It puts libraries on the classpath, and auto-configuration reacts to them. That's why forgetting the validation starter means `@Valid` is silently ignored. → [Build and packaging](java-spring-boot-essentials.md#build-and-packaging)
 
 ### 5) What are Spring Boot Actuators?
-
-- Provide production-ready endpoints for health, metrics, logging.
-- Example: `/actuator/health`, `/actuator/metrics`.
-- Liveness and readiness probes (`/actuator/health/liveness`, `/readiness`) feed ECS/ALB health checks. Expose only what's needed (`management.endpoints.web.exposure.include=health,info,prometheus`) and never expose `env`/`heapdump` publicly. They are beans like any other endpoint, secured separately from the API so a public health check doesn't reveal the environment.
-
----
+Production endpoints for health (with liveness and readiness for load balancer and container probes), info, metrics and Prometheus. Expose only an explicit list, secure the management endpoints separately, and never expose env or heapdump publicly. → [Observability](java-spring-boot-essentials.md#observability)
 
 ### 6) Explain Spring Profiles.
+A profile is a named layer of configuration, such as dev or prod, activated with `SPRING_PROFILES_ACTIVE`. The recommended approach is profile-specific property files, `application-prod.yml`, so every environment runs the same beans with different values. `@Profile` on a bean is reserved for the rare case where a whole implementation must change, such as a fake mail sender locally. → [Configuration and profiles](java-spring-boot-essentials.md#configuration-and-profiles)
 
-- Allow environment-specific beans/configs (`dev`, `test`, `prod`).
-- Example:
+### 7) What are the bean scopes?
+Singleton (the default, one per container, so it must be stateless or thread-safe), prototype (a new instance per injection or lookup), and the web scopes request, session and application. → [Scopes](java-spring-boot-essentials.md#scopes)
 
-```java
-@Profile("dev")
-@Bean
-public DataSource devDataSource() { ... }
-```
-- Activate with `SPRING_PROFILES_ACTIVE=prod`. Prefer profile-specific property files (`application-prod.yml`) over many `@Profile` beans. Boot builds one `Environment` from layered property sources. The profile file is a higher layer than `application.yml`, and an env var beats both. Beans annotated `@Profile` are not even registered unless that profile is active.
-
----
-
-### 7) What are the different types of bean scopes in Spring?
-
-- **singleton** (default) → one per container. **Must be stateless/thread-safe, because the instance is cached and every request thread calls it.** NestJS providers are singletons by default for the same reason.
-- **prototype** → new instance **every time it's injected or requested from the container (`getBean`)**.
-- **request** → per HTTP request.
-- **session** → per HTTP session.
-- **application** → per ServletContext lifecycle.
-
----
-
-### 8) What is the difference between `@Component`, `@Service`, `@Repository`, and `@Controller`?
-
-- All are **stereotype annotations** → register beans.
-- `@Component` → generic bean.
-- `@Service` → business logic. **(semantic only, no extra behaviour)**
-- `@Repository` → data access layer, adds exception translation. That translation is a proxy around the bean: vendor SQL exceptions become Spring's `DataAccessException` before they reach the service.
-- `@Controller` → MVC controller.
-
----
+### 8) `@Component` vs `@Service` vs `@Repository` vs `@Controller`?
+All four register a bean. `@Component` is generic, `@Service` is a semantic label with no extra behaviour, `@Repository` adds translation of persistence exceptions into `DataAccessException`, and `@Controller` marks the web layer. → [Stereotypes](java-spring-boot-essentials.md#stereotypes)
 
 ### 9) How does Spring Boot handle embedded servers?
-
-- By default → **Tomcat**.
-- Also supports Jetty, Undertow.
-- No need for WAR deployment → just run `java -jar app.jar`.
-- That makes it container-friendly: one Dockerfile, deployed to ECS or Elastic Beanstalk. The starter registers a servlet container inside the process. `main` starts it. There is no external Tomcat unpacking a WAR.
-
----
+Tomcat by default, with Jetty and Undertow as options. The server runs inside the application process, started from `main`, so the app is one executable jar run with `java -jar`. That makes it container-friendly: one Dockerfile, deployed to ECS or Kubernetes. → [Build and packaging](java-spring-boot-essentials.md#build-and-packaging)
 
 ### 10) How does Spring Security work?
-
-- Handles authentication & authorization.
-- Integrates with JWT, OAuth2, LDAP.
-- Uses **filters** in security chain (**servlet filters that run before the `DispatcherServlet`**).
-- Example: `UsernamePasswordAuthenticationFilter`.
-- In Spring Security 6 (Boot 3), `WebSecurityConfigurerAdapter` **no longer exists**. You declare a `SecurityFilterChain` bean:
-
-```java
-@Bean
-SecurityFilterChain api(HttpSecurity http) throws Exception {
-    return http
-        .csrf(c -> c.disable())   // only for stateless bearer-token APIs
-        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(a -> a
-            .requestMatchers("/actuator/health").permitAll()
-            .anyRequest().authenticated())
-        .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))
-        .build();
-}
-```
-- Method security: `@EnableMethodSecurity` + `@PreAuthorize("hasRole('ADMIN')")`. Still check resource **ownership** in the service (broken access control is OWASP 2025 #1).
-- On success the filter stores an `Authentication` on the thread (`SecurityContextHolder`). `@PreAuthorize` reads that. It does not parse the header again. A Nest guard that attaches `req.user` is the same hand-off.
-
----
+It's a chain of servlet filters in front of the DispatcherServlet. A filter authenticates the request and stores the result in the SecurityContext. URL rules and method security then authorize it, and failures become 401 or 403 before any controller runs. In Spring Security 6 you configure it with a `SecurityFilterChain` bean. → [spring-security.md](spring-security.md)
 
 ### 11) What is Spring Data JPA?
-
-- Abstraction over JPA/Hibernate.
-- Provides `CrudRepository`, `JpaRepository`.
-- Supports query methods like:
-
-```java
-List<User> findByLastName(String lastName);
-```
-- Also `@Query` (JPQL/native), `@EntityGraph`, projections (records), `Pageable`. See Q23 for N+1.
-- There is no implementation class in your code. At startup Spring Data parses the method name into a query and builds a JDK proxy that runs it. `@Query` skips the parser.
-
----
+An abstraction over JPA and Hibernate. You write a repository interface and Spring generates the implementation at startup: derived queries from method names, `@Query` for JPQL or native SQL, entity graphs, projections and paging. → [Spring Data JPA](jpa-hibernate-transactions.md#spring-data-jpa)
 
 ### 12) How does Spring handle transactions?
-
-- With `@Transactional`.
-- Supports propagation (REQUIRED, REQUIRES_NEW, etc.) and isolation levels.
-  - **How the proxy works:** Boot subclasses the service (CGLIB). The subclass starts the transaction, calls your method, then commits or rolls back. `this.other()` and `private` methods run on the real object and skip that subclass.
-  - Put it on the **service layer**.
-  - It's **proxy-based**: `this.method()` self-invocation and `private` methods **bypass** it.
-  - Rollback by default only on **unchecked** exceptions. Checked exceptions commit unless `rollbackFor = Exception.class`. Swallowed exceptions mean no rollback.
-  - `@Transactional(readOnly = true)` for reads.
-  - `REQUIRED` (default) joins or creates. `REQUIRES_NEW` suspends the outer one and commits independently (audit log).
-  - MySQL InnoDB default isolation = REPEATABLE READ.
-  - No remote HTTP calls inside a transaction.
-
----
+Declaratively with `@Transactional` on service methods, applied by a proxy. Know propagation (REQUIRED joins or creates, REQUIRES_NEW runs independently), isolation, that only unchecked exceptions roll back by default, and that self-calls and private methods bypass the proxy. → [`@Transactional` rules](jpa-hibernate-transactions.md#transactional) · [why self-calls skip the proxy](java-spring-boot-essentials.md#bean-lifecycle-and-proxies)
 
 ### 13) What is AOP in Spring?
+Aspect-oriented programming applies a cross-cutting concern, such as transactions, caching, security or logging, to many methods without repeating it. Spring AOP is proxy-based, so it only applies to calls that enter through the proxy. Key terms: aspect, pointcut, join point, advice. → [Bean lifecycle and proxies](java-spring-boot-essentials.md#bean-lifecycle-and-proxies)
 
-- Aspect-Oriented Programming → separate cross-cutting concerns.
-- Example: Logging, Security, Caching.
-- Key concepts: Aspect, JoinPoint, Advice, Pointcut.
-- Spring AOP is proxy-based (JDK dynamic proxies for interfaces, CGLIB otherwise; Boot prefers class proxies). A join point here is a method call that enters through the proxy. `@Transactional`, `@Cacheable` and `@Async` are around-advice on that call, which is why a self-call never triggers them.
-
----
-
-### 14) What are the different types of advice in Spring AOP?
-
-- **Before** → runs before method.
-- **After Returning** → after method returns.
-- **After Throwing** → after exception.
-- **After (finally)** → runs regardless of outcome.
-- **Around** → wraps method execution. This is the one `@Transactional` uses: it can decide to commit or roll back after it sees the return or the exception. The others can't.
-
----
+### 14) What are the types of advice?
+Before, after returning, after throwing, after (finally), and around. Around wraps the call and can act on both the result and the exception, which is why transactions use it. → [AOP in one paragraph](java-spring-boot-essentials.md#bean-lifecycle-and-proxies)
 
 ### 15) How does Spring Boot handle configuration?
-
-- YAML or `application.properties`.
-- Precedence, highest first (simplified): **command-line args > Java system properties > OS environment variables > profile-specific files (`application-prod.yml`) > `application.yml` > `@PropertySource` > defaults.** Files outside the jar override packaged ones.
-- Bind config to a typed `@ConfigurationProperties` record instead of scattering `@Value`. Secrets come from env vars, Secrets Manager or SSM, never Git. Boot flattens those sources into one `Environment` before creating beans, then binds a prefix onto the record and can fail startup if a required value is missing. That's stricter than reading `process.env` in a few controllers and noticing the typo later.
-
----
+It merges property sources into one `Environment`, highest first: command-line args, Java system properties, OS env vars, profile-specific files outside the jar, profile-specific files inside the jar, application files outside the jar, application files inside the jar, `@PropertySource`, defaults. Bind groups of settings to a typed `@ConfigurationProperties` record, and keep secrets in env vars or a secrets manager. → [Configuration and profiles](java-spring-boot-essentials.md#configuration-and-profiles)
 
 ### 16) How does Spring Boot support microservices?
+Boot makes each service a small self-contained jar with health checks and metrics. Spring Cloud adds discovery (Eureka or Consul), a gateway, central config and Resilience4j. On AWS, platform features often replace the Spring Cloud pieces: ECS Service Connect or an ALB for discovery, API Gateway for routing, SSM or Secrets Manager for config. Resilience4j and tracing stay in the code. → [java-microservices.md](java-microservices.md)
 
-- Via **Spring Cloud**:
-  - Eureka (service discovery).
-  - API Gateway (routing).
-  - Config Server (central config).
-  - Resilience4J (circuit breaker).
-- On AWS these are often replaced by platform features: **ECS Service Connect / Cloud Map or an ALB** for discovery, **API Gateway / ALB** for routing, **SSM Parameter Store / Secrets Manager** for config. Resilience4j stays useful in code. Async communication goes through **SQS/SNS** (or Kafka). Tracing uses Micrometer Tracing / OpenTelemetry. Spring Cloud is a library set, not something Boot turns on by itself. On this stack the platform already does discovery and config, so don't describe Eureka as the default.
+### 17) `@RestController` vs `@Controller`?
+`@Controller` returns a view name to render. `@RestController` is `@Controller` plus `@ResponseBody`, so return values are serialised to JSON by a message converter. → [Stereotypes](java-spring-boot-essentials.md#stereotypes)
 
----
+### 18) How do you handle exceptions?
+One `@RestControllerAdvice` with `@ExceptionHandler` methods that map specific exceptions to statuses and return `ProblemDetail` (RFC 9457), plus a last-resort handler that logs and hides internals. The front end then has one error shape. → [Global error handling](java-spring-boot-essentials.md#global-error-handling-spring-6-problemdetail-rfc-9457)
 
-### 17) What is the difference between RestController and Controller?
+### 19) How do you secure REST APIs with JWT?
+Use the OAuth2 resource-server support instead of a hand-written filter. It fetches the issuer's JWKS, verifies the signature, checks exp and iss, and you add an audience check. The result goes into the SecurityContext, and nothing decodes the token again. → [JWT and OAuth2 resource servers](spring-security.md#4-jwt-and-oauth2-resource-servers)
 
-- `@Controller` → returns view (HTML/JSP).
-- `@RestController` = `@Controller + @ResponseBody` → returns JSON/XML.
-- `@ResponseBody` tells the `DispatcherServlet` to run the return value through an `HttpMessageConverter` (Jackson) instead of treating the string as a view name. Without it, `"listings"` would look for a template called `listings`.
-
----
-
-### 18) How does Spring Boot handle exception handling?
-
-- Use `@RestControllerAdvice` (= `@ControllerAdvice` + `@ResponseBody`) + `@ExceptionHandler`, returning **`ProblemDetail`** (RFC 9457, Spring 6). Map **specific** exceptions to specific statuses, and keep a catch-all `Exception` handler last that logs and hides internals.
-- The `DispatcherServlet` catches the exception and asks the advice for the most specific handler. ProblemDetail is one JSON shape (`type`, `title`, `status`, `detail`) so the React app parses errors in one place, the way a Nest exception filter does.
-
-```java
-@RestControllerAdvice
-class GlobalExceptionHandler {
-    @ExceptionHandler(NotFoundException.class)
-    ProblemDetail notFound(NotFoundException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    ProblemDetail invalid(MethodArgumentNotValidException ex) {
-        var pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setProperty("errors", ex.getFieldErrors().stream()
-            .map(f -> f.getField() + ": " + f.getDefaultMessage()).toList());
-        return pd;
-    }
-    @ExceptionHandler(Exception.class)
-    ProblemDetail fallback(Exception ex) {
-        log.error("Unhandled", ex);
-        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
-    }
-}
-```
-
----
-
-### 19) How do you secure REST APIs with JWT in Spring Boot?
-
-- Filter intercepts request → extracts JWT from header → validates.
-- On success → Authentication object placed in SecurityContext.
-- Don't hand-roll the JWT filter. Use the **OAuth2 Resource Server** (`spring-boot-starter-oauth2-resource-server`) with `spring.security.oauth2.resourceserver.jwt.issuer-uri=...`. It fetches the IdP's JWKS, verifies the signature and `exp`/`iss`, and maps claims to authorities. Validate `aud` too, and pin the algorithms. The result is an `Authentication` on the thread. Later code reads that. It does not decode the token again.
-
----
-
-### 20) What are common Spring Boot production best practices?
-
-- Use Actuator for monitoring.
-- Externalize configs.
-- Secure endpoints with HTTPS & Spring Security.
-- Containerize (Docker, K8s). **(or ECS on AWS)**
-- Enable centralized logging (ELK, Splunk).
-- Structured JSON logs with trace IDs. Timeouts on every outbound call. Graceful shutdown (`server.shutdown=graceful`). Flyway migrations with `ddl-auto=validate`. Connection-pool sizing (HikariCP). Dependency scanning in CI.
+### 20) What are production best practices?
+Actuator health and metrics, externalized config and secrets, HTTPS and Spring Security, containers, structured JSON logs with trace ids, timeouts on every outbound call, graceful shutdown, Flyway migrations with `ddl-auto=validate`, a sized connection pool, and dependency scanning in CI. → [Observability](java-spring-boot-essentials.md#observability) · [Other features](java-spring-boot-essentials.md#other-features-worth-knowing)
 
 ---
 
 ## More questions
 
 ### 21) How do you validate input?
-`spring-boot-starter-validation` + `@Valid @RequestBody` on a record DTO with `@NotBlank`, `@Size`, `@Positive`, `@Email`. Failures throw `MethodArgumentNotValidException` → 400 with field errors. The check runs in the argument resolver, before your method, so a bad body never reaches the service. Use `@Validated` on the class for `@PathVariable`/`@RequestParam` constraints. It's the same idea as NestJS `ValidationPipe` + class-validator.
+`spring-boot-starter-validation` + `@Valid @RequestBody` on a record DTO with `@NotBlank`, `@Size`, `@Positive`, `@Email`. Failures throw `MethodArgumentNotValidException` → 400 with field errors. The check runs in the argument resolver, before your method, so a bad body never reaches the service. Use `@Validated` on the class for `@PathVariable`/`@RequestParam` constraints. It's the same idea as NestJS `ValidationPipe` + class-validator. → [A REST endpoint end to end](java-spring-boot-essentials.md#a-rest-endpoint-end-to-end)
 
 ### 22) Why DTOs instead of returning entities?
-Decouple the API from the schema, avoid leaking fields, avoid `LazyInitializationException` and JSON recursion, and allow different read and write shapes. Jackson walking an entity graph will initialise lazy proxies if the session is still open, and recurse on a bidirectional relation. A record DTO is a flat value with none of that machinery. Java `record`s make them one line.
+Decouple the API from the schema, avoid leaking fields, avoid `LazyInitializationException` and JSON recursion, and allow different read and write shapes. Java `record`s make them one line.
 
 ### 23) What is the N+1 problem?
-Loading N parents and then lazily loading a relation on each one gives N extra queries. Each touch initialises that row's proxy with its own SELECT, because the first query never fetched those columns. Fix with `JOIN FETCH` / `@EntityGraph`, batch fetching, or DTO projections. Watch out for collection fetch joins plus pagination (in-memory paging). Note that `@ManyToOne` is EAGER by default, so set it LAZY. → `jpa-hibernate-transactions.md`
+Loading N parents and then lazily loading a relation on each one gives N extra queries. Fix with `JOIN FETCH` / `@EntityGraph`, batch fetching, or DTO projections, and remember `@ManyToOne` is EAGER by default. → [The N+1 problem](jpa-hibernate-transactions.md#the-n1-problem)
 
 ### 24) What is `LazyInitializationException`?
-Touching a lazy relation after the session closed (e.g. during JSON serialisation). The proxy still holds the id, but the session it would query is gone, so it throws instead of running SQL. Fetch inside the transactional service and map to DTOs. `spring.jpa.open-in-view` is true by default and hides it by keeping the session open for the whole request, and many teams disable it.
+Touching a lazy relation after the session closed, typically during JSON serialisation. Fetch inside the transactional service and map to DTOs. Open-in-view hides it, and many teams disable it. → [jpa-hibernate-transactions.md](jpa-hibernate-transactions.md#lazyinitializationexception)
 
 ### 25) How do you test Spring Boot apps?
-JUnit 5 + Mockito for services, with no Spring context. `@WebMvcTest` drives the `DispatcherServlet` in memory for status codes and JSON. `@DataJpaTest` runs repository queries and rolls the transaction back. `@SpringBootTest` boots the real auto-config, so use it sparingly. Testcontainers MySQL with `@ServiceConnection`. `@MockitoBean` replaces the deprecated `@MockBean` (Boot 3.4+). JaCoCo gate in Jenkins. → `spring-boot-testing.md`
+JUnit 5 + Mockito for services with no Spring context, `@WebMvcTest` for controllers, `@DataJpaTest` with Testcontainers for queries, a few `@SpringBootTest` flows, and a JaCoCo gate in Jenkins. → [spring-boot-testing.md](spring-boot-testing.md)
 
 ### 26) What changed in Spring Boot 3?
 Java 17 baseline, `javax` → `jakarta` (the Java EE packages moved; old `javax.persistence` imports do not compile), Spring Security 6 (`SecurityFilterChain` only, the adapter class was removed), ProblemDetail support, Micrometer Observation/Tracing (Sleuth replaced), GraalVM native images, `RestClient` (3.2), virtual threads (3.2), `@ServiceConnection`/Docker Compose support (3.1). Boot 4 exists. Most code you'll be shown is still 3.x.
 
 ### 27) Virtual threads in Spring?
-`spring.threads.virtual.enabled=true` (Boot 3.2+, Java 21). Tomcat handles each request on a virtual thread. When JDBC blocks, the JVM unmounts that virtual thread and the carrier OS thread runs another request. It's for I/O-bound services, not CPU work, and the DB pool becomes the real limit because each query still needs a real connection.
+`spring.threads.virtual.enabled=true` (Boot 3.2+, Java 21) runs each request on a cheap virtual thread that unmounts while it blocks on I/O. Good for I/O-bound services, not CPU work, and the DB pool stays the limit. → [MVC vs WebFlux vs virtual threads](java-spring-boot-essentials.md#mvc-vs-webflux-vs-virtual-threads)
 
 ### 28) How does your NestJS experience transfer?
-NestJS modules, providers, constructor DI, `@Controller`/`@Get`, DTO + `ValidationPipe`, exception filters, guards and interceptors map 1:1 to Spring's configuration/beans, constructor injection, `@RestController`/`@GetMapping`, `@Valid` DTOs, `@RestControllerAdvice`, Security filters/`@PreAuthorize` and HandlerInterceptor/AOP. The request still enters a guard, a validation step, a controller and one error filter. Only the annotations change. → Table in `java-spring-boot-essentials.md`.
+NestJS modules, providers, constructor DI, `@Controller`/`@Get`, DTO + `ValidationPipe`, exception filters, guards and interceptors map 1:1 to Spring's configuration/beans, constructor injection, `@RestController`/`@GetMapping`, `@Valid` DTOs, `@RestControllerAdvice`, Security filters/`@PreAuthorize` and HandlerInterceptor/AOP. → [NestJS ↔ Spring bridge](java-spring-boot-essentials.md#nestjs--spring-bridge-your-strongest-card)
+
+### 29) Filter vs interceptor vs aspect?
+Filters run at the server level for HTTP-wide concerns, interceptors run inside Spring MVC and know the handler, and aspects wrap bean methods regardless of how they were called. → [Request pipeline](java-spring-boot-essentials.md#request-pipeline-filters-interceptors-and-aspects)
+
+### 30) What's the bean lifecycle?
+Definition, instantiation, injection, Aware callbacks, post-processors, `@PostConstruct`, proxy creation, use, `@PreDestroy`. → [Bean lifecycle and proxies](java-spring-boot-essentials.md#bean-lifecycle-and-proxies)
 
 ---
 
